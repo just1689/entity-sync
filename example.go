@@ -46,7 +46,7 @@ func main() {
 }
 
 func HandleEntity(mux *http.ServeMux, topic string) {
-	itemHub := web.NewHub(topic, id, getter)
+	itemHub := web.NewHub(topic)
 	go itemHub.Run()
 
 	mux.HandleFunc(fmt.Sprint("/ws/entity-sync/", topic), func(w http.ResponseWriter, r *http.Request) {

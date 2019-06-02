@@ -17,6 +17,30 @@ type Bridge struct {
 	Subscribers map[string][]*Client
 }
 
+func (b *Bridge) Notify(topic, ID string) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	clients, found := b.Subscribers[topic]
+	if !found {
+		logrus.Println("No one to notify on ", topic)
+		return
+	}
+
+	for _, client := range clients {
+		subscribedID, f := client.Subscriptions[topic]
+		if !f {
+			logrus.Errorln("Strange, found client in list of topics for topic", topic, "but not in actual client")
+			continue
+		}
+
+		if subscribedID == ID {
+			// TODO: send the client something...
+		}
+
+	}
+
+}
+
 func (b *Bridge) AddQueuePublisher(topic string, f shared.ByteHandler) {
 	b.m.Lock()
 	defer b.m.Unlock()
@@ -24,8 +48,8 @@ func (b *Bridge) AddQueuePublisher(topic string, f shared.ByteHandler) {
 
 }
 
-func (b *Bridge) AddQueueSubscriber(topic string) shared.ByteHandler {
-	f := func(msg []byte) {
+func (b *Bridge) AddQueueSubscriber(topic string) (f shared.ByteHandler) {
+	f = func(msg []byte) {
 		b.m.Lock()
 		defer b.m.Unlock()
 		clients, ok := b.Subscribers[topic]
@@ -37,7 +61,7 @@ func (b *Bridge) AddQueueSubscriber(topic string) shared.ByteHandler {
 			client.ToWS <- msg
 		}
 	}
-	return f
+	return
 
 }
 
@@ -62,6 +86,7 @@ func (b *Bridge) BlockOnDisconnect(topic string, c *Client, index int) {
 }
 
 type Client struct {
-	ToWS     chan []byte
-	RemoteDC chan bool
+	Subscriptions map[string]string
+	ToWS          chan []byte
+	RemoteDC      chan bool
 }
