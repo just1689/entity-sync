@@ -16,3 +16,10 @@ func (d *DatabaseHub) AddUpdateHandler(entity string, client HandleUpdateClient)
 	d.handlers[entity] = client
 
 }
+
+func (d *DatabaseHub) ProcessUpdateHandler(key shared.RowKey, sender shared.ByteHandler) {
+	handlerUpdateClient, found := d.handlers[key.Entity]
+	if found {
+		handlerUpdateClient(key, sender)
+	}
+}

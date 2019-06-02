@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"github.com/just1689/entity-sync/db"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -17,24 +18,24 @@ type Bridge struct {
 	Subscribers map[string][]*Client
 }
 
-func (b *Bridge) Notify(topic, ID string) {
+func (b *Bridge) Notify(key shared.RowKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
-	clients, found := b.Subscribers[topic]
+	clients, found := b.Subscribers[key.Entity]
 	if !found {
-		logrus.Println("No one to notify on ", topic)
+		logrus.Println("No one to notify on ", key.Entity)
 		return
 	}
 
 	for _, client := range clients {
-		subscribedID, f := client.Subscriptions[topic]
+		subscribedID, f := client.Subscriptions[key.Entity]
 		if !f {
-			logrus.Errorln("Strange, found client in list of topics for topic", topic, "but not in actual client")
+			logrus.Errorln("Strange, found client in list of topics for topic", key.Entity, "but not in actual client")
 			continue
 		}
 
-		if subscribedID == ID {
-			// TODO: send the client something...
+		if subscribedID == key.ID {
+			db.GlobalDatabaseHub.ProcessUpdateHandler(key, client.SendToWS)
 		}
 
 	}
@@ -48,8 +49,8 @@ func (b *Bridge) AddQueuePublisher(topic string, f shared.ByteHandler) {
 
 }
 
-func (b *Bridge) AddQueueSubscriber(topic string) (f shared.ByteHandler) {
-	f = func(msg []byte) {
+func (b *Bridge) AddQueueSubscriber(topic string) shared.ByteHandler {
+	return func(msg []byte) {
 		b.m.Lock()
 		defer b.m.Unlock()
 		clients, ok := b.Subscribers[topic]
@@ -61,7 +62,6 @@ func (b *Bridge) AddQueueSubscriber(topic string) (f shared.ByteHandler) {
 			client.ToWS <- msg
 		}
 	}
-	return
 
 }
 
@@ -81,7 +81,9 @@ func (b *Bridge) SubscribeClient(topic string, c *Client) {
 func (b *Bridge) BlockOnDisconnect(topic string, c *Client, index int) {
 	go func() {
 		<-c.RemoteDC
+		b.m.Lock()
 		b.Subscribers[topic] = append(b.Subscribers[topic][:index], b.Subscribers[topic][index+1:]...)
+		b.m.Unlock()
 	}()
 }
 
@@ -89,4 +91,8 @@ type Client struct {
 	Subscriptions map[string]string
 	ToWS          chan []byte
 	RemoteDC      chan bool
+}
+
+func (c *Client) SendToWS(msg []byte) {
+	c.ToWS <- msg
 }
