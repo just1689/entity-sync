@@ -11,7 +11,9 @@ import (
 )
 
 const nsqAddr = "127.0.0.1:4150"
-const topic = "items"
+const entity = "items"
+
+var GlobalBridge *bridge.Bridge
 
 func main() {
 
@@ -21,10 +23,13 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
-	itemNSQProducer := dq.GetNSQProducer(nsqAddr, topic)
-	bridge.GlobalBridge.AddQueuePublisher(topic, itemNSQProducer)
+	//Build the bridge
+	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr))
 
-	bridge.GlobalBridge.AddQueueSubscriber(topic)
+	//Create publisher
+	GlobalBridge.CreateQueuePublishers(entity)
+
+	//A websocket client will subscribe
 
 	HandleEntity(mux, topic)
 

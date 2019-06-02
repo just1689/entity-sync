@@ -7,13 +7,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetNSQProducer(nsqAddr string, topic string) shared.ByteHandler {
+func BuildPublisher(nsqAddr string) shared.EntityHandler {
+	return func(entity shared.Entity) {
+		GetNSQProducer(nsqAddr, entity)
+	}
+
+}
+
+func GetNSQProducer(nsqAddr string, entity shared.Entity) shared.ByteHandler {
 	config := nsq.NewConfig()
 	w, _ := nsq.NewProducer(nsqAddr, config)
 	producer := func(msg []byte) {
-		err := w.Publish(topic, msg)
+		err := w.Publish(string(entity), msg)
 		if err != nil {
-			logrus.Panic("Could not publish to NSQ ", nsqAddr, "on topic", topic)
+			logrus.Panic("Could not publish to NSQ ", nsqAddr, "on topic", entity)
 		}
 	}
 	return producer
