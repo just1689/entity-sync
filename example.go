@@ -1,17 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"github.com/just1689/entity-sync/bridge"
 	"github.com/just1689/entity-sync/dq"
-	"github.com/just1689/entity-sync/web"
+	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 )
 
 const nsqAddr = "127.0.0.1:4150"
-const entity = "items"
+const entityType shared.EntityType = "items"
 
 var GlobalBridge *bridge.Bridge
 
@@ -27,21 +26,12 @@ func main() {
 	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr))
 
 	//Create publisher
-	GlobalBridge.CreateQueuePublishers(entity)
+	GlobalBridge.CreateQueuePublishers(entityType)
 
-	//A websocket client will subscribe
+	//Ensure the bridge will send NSQ messages for entityType to onNotify
+	GlobalBridge.Subscribe(entityType)
 
 	HandleEntity(mux, topic)
-
-	//io.HandleEntity(mux, "items", "id", func(val string) (item interface{}, err error) {
-	//	// Pretend to get the entity
-	//	item = ItemV1{
-	//		ID:         val,
-	//		Closed:     false,
-	//		ClosedDate: time.Now(),
-	//	}
-	//	return
-	//})
 
 	err = http.Serve(l, mux)
 	if err != nil {
