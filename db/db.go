@@ -3,17 +3,17 @@ package db
 import "github.com/just1689/entity-sync/shared"
 
 var GlobalDatabaseHub = &DatabaseHub{
-	handlers: make(map[string]HandleUpdateClient),
+	handlers: make(map[shared.EntityType]HandleUpdateClient),
 }
 
 type HandleUpdateClient func(rowKey shared.EntityKey, sender shared.ByteHandler)
 
 type DatabaseHub struct {
-	handlers map[string]HandleUpdateClient
+	handlers map[shared.EntityType]HandleUpdateClient
 }
 
-func (d *DatabaseHub) AddUpdateHandler(entity string, client HandleUpdateClient) {
-	d.handlers[entity] = client
+func (d *DatabaseHub) AddUpdateHandler(entityType shared.EntityType, client HandleUpdateClient) {
+	d.handlers[entityType] = client
 
 }
 
