@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/just1689/entity-sync/bridge"
@@ -56,5 +57,7 @@ func resolveName() {
 		Name = fmt.Sprint("Reader", rand.Intn(100))
 	} else if *role == 2 {
 		Name = fmt.Sprint("Mutator", rand.Intn(100))
+	} else {
+		panic(errors.New("role can be 1 or 2 and nothing else"))
 	}
 }
