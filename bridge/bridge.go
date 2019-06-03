@@ -23,6 +23,8 @@ type Bridge struct {
 	queuePublishers       map[shared.EntityType]shared.ByteHandler
 	queuePublisherBuilder shared.EntityHandler
 
+	queueSubscriberBuilder shared.EntityByteHandler
+
 	clients []*Client
 }
 
@@ -46,7 +48,15 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 }
 
 func (b *Bridge) Subscribe(entityType shared.EntityType) {
-	123
+	b.queueSubscriberBuilder(entityType, func(barr []byte) {
+		key := shared.EntityKey{}
+		err := json.Unmarshal(barr, &key)
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		b.onNotify(key)
+	})
 }
 
 func (b *Bridge) onNotify(key shared.EntityKey) {
