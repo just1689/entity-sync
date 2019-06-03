@@ -10,7 +10,7 @@ type EntityKeyHandler func(entityKey EntityKey)
 type EntityType string
 
 func (e EntityType) GetQueueName() string {
-	return fmt.Sprint(e, "#ephemeral")
+	return fmt.Sprint(e, "")
 }
 
 type EntityKey struct {
