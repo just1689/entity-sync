@@ -41,7 +41,7 @@ func main() {
 	//Build the bridge
 	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr))
 
-	//Create publisher
+	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
 
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
