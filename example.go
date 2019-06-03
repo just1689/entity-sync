@@ -44,7 +44,7 @@ func main() {
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
 	GlobalBridge.Subscribe(entityType)
 
-	web.HandleEntity(mux)
+	web.HandleEntity(mux, GlobalBridge)
 
 	err = http.Serve(l, mux)
 	if err != nil {
