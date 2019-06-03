@@ -31,7 +31,7 @@ func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
 
 }
 
-//NotifyAll can be called to publish to all nodes that a row of type EntityType has changed
+//NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
 func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 	pub, found := b.queuePublishers[key.Entity]
 	if !found {
@@ -43,6 +43,10 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 	}
 	pub(barr)
 
+}
+
+func (b *Bridge) Subscribe(entityType shared.EntityType) {
+	123
 }
 
 func (b *Bridge) onNotify(key shared.EntityKey) {

@@ -8,10 +8,9 @@ import (
 )
 
 func BuildPublisher(nsqAddr string) shared.EntityHandler {
-	return func(entity shared.EntityType) {
-		GetNSQProducer(nsqAddr, entity)
+	return func(entityType shared.EntityType) shared.ByteHandler {
+		return GetNSQProducer(nsqAddr, entityType)
 	}
-
 }
 
 func GetNSQProducer(nsqAddr string, entity shared.EntityType) shared.ByteHandler {
