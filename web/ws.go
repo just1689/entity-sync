@@ -1,7 +1,11 @@
 package web
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/just1689/entity-sync/bridge"
+	"github.com/just1689/entity-sync/shared"
+	"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
 	"time"
@@ -23,16 +27,19 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	bridge *bridge.Bridge
 }
 
 type Getter func(val string) (item interface{}, err error)
 
-func NewHub() *Hub {
+func NewHub(b *bridge.Bridge) *Hub {
 	return &Hub{
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		bridge:     b,
 	}
 }
 
@@ -92,6 +99,10 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	subFunc       shared.EntityKeyHandler
+	unSubFunc     shared.EntityKeyHandler
+	queueDCNotify chan bool
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -116,8 +127,22 @@ func (c *Client) readPump() {
 			break
 		}
 
-		// TODO: handle incoming websocket messages
-		c.hub.broadcast <- message
+		m := shared.MessageAction{}
+		err = json.Unmarshal(message, &m)
+		if err != nil {
+			logrus.Errorln(err)
+			continue
+		}
+		if m.Action == shared.ActionSubscribe {
+			c.subFunc(m.EntityKey)
+		} else if m.Action == shared.ActionUnSubscribe {
+			c.unSubFunc(m.EntityKey)
+		} else {
+			logrus.Errorln("Unknown action", m.Action)
+			continue
+		}
+
+		//c.hub.broadcast <- message
 	}
 }
 
@@ -174,8 +199,18 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+
+	client := &Client{
+		hub:  hub,
+		conn: conn,
+		send: make(chan []byte, 256),
+	}
 	client.hub.register <- client
+
+	client.subFunc, client.unSubFunc, client.queueDCNotify = hub.bridge.ClientBuilder(func(barr []byte) {
+		//Send to client if the client is there?
+		client.send <- barr
+	})
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
@@ -183,8 +218,8 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.readPump()
 }
 
-func HandleEntity(mux *http.ServeMux) {
-	itemHub := NewHub()
+func HandleEntity(mux *http.ServeMux, b *bridge.Bridge) {
+	itemHub := NewHub(b)
 	go itemHub.Run()
 
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
