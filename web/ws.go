@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/just1689/entity-sync/bridge"
 	"github.com/just1689/entity-sync/shared"
@@ -123,7 +122,6 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
-		fmt.Println("Client says on ws: ", string(message))
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -212,13 +210,9 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- client
 
 	client.subFunc, client.unSubFunc, client.queueDCNotify = hub.bridge.ClientBuilder(func(barr []byte) {
-		//Send to client if the client is there?
-		defer fmt.Println("Wrote to the clients ws", string(barr))
 		client.send <- barr
 	})
 
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
 	go client.writePump()
 	go client.readPump()
 }

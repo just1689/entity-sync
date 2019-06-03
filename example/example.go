@@ -99,7 +99,7 @@ func startMutator(b *bridge.Bridge) {
 			logrus.Println("Mutated", key.ID)
 			logrus.Println("NotifyAllOfChange(", key.Hash(), ")")
 			b.NotifyAllOfChange(key)
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 }

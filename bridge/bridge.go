@@ -2,7 +2,6 @@ package bridge
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/just1689/entity-sync/db"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
@@ -93,14 +92,11 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 }
 
 func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
-	defer fmt.Println("Added client")
 	client := Client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
 		Subscriptions: make(map[string]shared.EntityKey),
 	}
-	b.m.Lock()
-	defer b.m.Lock()
 	b.clients = append(b.clients, &client)
 	b.blockOnDisconnect(&client)
 	return client.Subscribe, client.UnSubscribe, client.RemoteDC

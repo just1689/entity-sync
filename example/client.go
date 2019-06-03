@@ -28,7 +28,7 @@ func main() {
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatal("dial:", err)
+		log.Fatal("Could not dial ws:", err)
 	}
 	defer c.Close()
 
@@ -58,6 +58,9 @@ func main() {
 	}
 	logrus.Println("Subscribing to entityType", "items")
 	err = c.WriteMessage(websocket.TextMessage, b)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	for {
 
