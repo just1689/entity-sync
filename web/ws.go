@@ -52,6 +52,8 @@ func (h *Hub) Run() {
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
+				client.queueDCNotify <- true
+				close(client.queueDCNotify)
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {

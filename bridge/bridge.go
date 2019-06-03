@@ -74,11 +74,16 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 	}
 }
 
-func (b *Bridge) BlockOnDisconnect(entity shared.EntityType, c *Client, index int) {
+func (b *Bridge) blockOnDisconnect(c *Client) {
 	go func() {
 		<-c.RemoteDC
 		b.m.Lock()
-		delete(b.queuePublishers, entity)
+		for i, client := range b.clients {
+			if client == c {
+				b.clients[i] = b.clients[len(b.clients)-1]
+				b.clients = b.clients[:len(b.clients)-1]
+			}
+		}
 		b.m.Unlock()
 	}()
 }
@@ -92,6 +97,7 @@ func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHan
 	b.m.Lock()
 	defer b.m.Lock()
 	b.clients = append(b.clients, &client)
+	b.blockOnDisconnect(&client)
 	return client.Subscribe, client.UnSubscribe, client.RemoteDC
 }
 
