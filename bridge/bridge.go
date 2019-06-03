@@ -2,18 +2,18 @@ package bridge
 
 import (
 	"encoding/json"
-	"github.com/just1689/entity-sync/db"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
 	"sync"
 )
 
-func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler) *Bridge {
+func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbUpdateHandler shared.EntityKeyByteHandler) *Bridge {
 	return &Bridge{
 		queuePublisherBuilder:  queuePublisherBuilder,
 		queueSubscriberBuilder: queueSubscriberBuilder,
 		queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
 		clients:                make([]*Client, 0),
+		dbUpdateHandler:        dbUpdateHandler,
 	}
 }
 
@@ -24,9 +24,12 @@ type Bridge struct {
 	queuePublishers       map[shared.EntityType]shared.ByteHandler
 	queuePublisherBuilder shared.EntityHandler
 
+	//Creates subscribers
 	queueSubscriberBuilder shared.EntityByteHandler
 
 	clients []*Client
+
+	dbUpdateHandler shared.EntityKeyByteHandler
 }
 
 func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
@@ -73,7 +76,7 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 			continue
 		}
 		logrus.Println("Found client to notify about", rowKey.Hash())
-		db.GlobalDatabaseHub.ProcessUpdateHandler(key, client.ToWS)
+		b.dbUpdateHandler(key, client.ToWS)
 	}
 }
 
