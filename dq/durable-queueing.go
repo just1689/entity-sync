@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//BuildPublisher can be called to give a method that in turn can be called to create publishers
 func BuildPublisher(nsqAddr string) shared.EntityHandler {
 	return func(entityType shared.EntityType) shared.ByteHandler {
 		return GetNSQProducer(nsqAddr, entityType)
@@ -25,9 +26,15 @@ func GetNSQProducer(nsqAddr string, entity shared.EntityType) shared.ByteHandler
 	return producer
 }
 
-func SubscribeNSQ(nsqAddr string, topic string, f shared.ByteHandler) {
+func BuildSubscriber(nsqAddr string) shared.EntityByteHandler {
+	return func(entityType shared.EntityType, callback shared.ByteHandler) {
+		SubscribeNSQ(nsqAddr, entityType, callback)
+	}
+}
+
+func SubscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHandler) {
 	config := nsq.NewConfig()
-	q, _ := nsq.NewConsumer(topic, uuid.NewV4().String(), config)
+	q, _ := nsq.NewConsumer(string(entityType), uuid.NewV4().String(), config)
 	q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		f(message.Body)
 		return nil
