@@ -5,6 +5,7 @@ import "fmt"
 type ByteHandler func([]byte)
 type EntityByteHandler func(entity EntityType, handler ByteHandler)
 type EntityHandler func(entity EntityType) ByteHandler
+type EntityKeyHandler func(entityKey EntityKey)
 
 type EntityType string
 
@@ -15,4 +16,14 @@ type EntityKey struct {
 
 func (r *EntityKey) Hash() string {
 	return fmt.Sprint(r.Entity, ".", r.ID)
+}
+
+type Action string
+
+const ActionSubscribe Action = "subscribe"
+const ActionUnSubscribe Action = "unsubscribe"
+
+type MessageAction struct {
+	Action    Action    `json:"action"`
+	EntityKey EntityKey `json:"entityKey"`
 }
