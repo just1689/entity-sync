@@ -70,7 +70,7 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 			continue
 		}
 		logrus.Println("Found client to notify about", rowKey.Hash())
-		db.GlobalDatabaseHub.ProcessUpdateHandler(key, client.SendToWS)
+		db.GlobalDatabaseHub.ProcessUpdateHandler(key, client.ToWS)
 	}
 }
 
@@ -83,9 +83,21 @@ func (b *Bridge) BlockOnDisconnect(entity shared.EntityType, c *Client, index in
 	}()
 }
 
+func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
+	client := Client{
+		ToWS:          ToWS,
+		RemoteDC:      make(chan bool),
+		Subscriptions: make(map[string]shared.EntityKey),
+	}
+	b.m.Lock()
+	defer b.m.Lock()
+	b.clients = append(b.clients, &client)
+	return client.Subscribe, client.UnSubscribe, client.RemoteDC
+}
+
 type Client struct {
 	Subscriptions map[string]shared.EntityKey
-	ToWS          chan []byte
+	ToWS          shared.ByteHandler
 	RemoteDC      chan bool
 }
 
@@ -93,6 +105,6 @@ func (c *Client) Subscribe(key shared.EntityKey) {
 	c.Subscriptions[key.Hash()] = key
 }
 
-func (c *Client) SendToWS(msg []byte) {
-	c.ToWS <- msg
+func (c *Client) UnSubscribe(key shared.EntityKey) {
+	delete(c.Subscriptions, key.Hash())
 }
