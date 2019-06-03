@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -24,13 +25,10 @@ const entityType shared.EntityType = "items"
 var GlobalBridge *bridge.Bridge
 
 var Name string
-var role = flag.Int("role", 1, "1 for reader, 2 for changer")
 var listenLocal = flag.String("listen", ":8080", "listen addr: :8080")
 
 func main() {
 	flag.Parse()
-
-	resolveName()
 
 	mux := http.NewServeMux()
 	l, err := net.Listen("tcp", *listenLocal)
@@ -60,6 +58,8 @@ func main() {
 
 	web.HandleEntity(mux, GlobalBridge)
 
+	resolveName(GlobalBridge)
+
 	logrus.Println("Starting serve on ", *listenLocal)
 	err = http.Serve(l, mux)
 	if err != nil {
@@ -74,24 +74,32 @@ type ItemV1 struct {
 	ClosedDate time.Time
 }
 
-func resolveName() {
-	if *role == 1 {
+func resolveName(b *bridge.Bridge) {
+	role := os.Getenv("role")
+	if role == "1" {
 		Name = fmt.Sprint("Reader", rand.Intn(100))
-	} else if *role == 2 {
+	} else if role == "2" {
 		Name = fmt.Sprint("Mutator", rand.Intn(100))
-		startMutator()
+		startMutator(b)
 	} else {
 		panic(errors.New("role can be 1 or 2 and nothing else"))
 	}
 }
 
-func startMutator() {
+func startMutator(b *bridge.Bridge) {
 	go func() {
+		key := shared.EntityKey{
+			ID:     "100",
+			Entity: entityType,
+		}
 		for {
 			exampleMutex.Lock()
 			exampleItem.ClosedDate = time.Now()
 			exampleMutex.Unlock()
-			time.Sleep(2 * time.Second)
+			logrus.Println("Mutated", key.ID)
+			logrus.Println("NotifyAllOfChange(", key.Hash(), ")")
+			b.NotifyAllOfChange(key)
+			time.Sleep(5 * time.Second)
 		}
 	}()
 }

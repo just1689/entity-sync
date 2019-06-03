@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"github.com/gorilla/websocket"
+	"github.com/just1689/entity-sync/shared"
+	"github.com/sirupsen/logrus"
 	"log"
 	"net/url"
 	"os"
@@ -42,7 +45,22 @@ func main() {
 		}
 	}()
 
+	m := shared.MessageAction{
+		Action: shared.ActionSubscribe,
+		EntityKey: shared.EntityKey{
+			Entity: "items",
+			ID:     "100",
+		},
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	logrus.Println("Subscribing to entityType", "items")
+	err = c.WriteMessage(websocket.TextMessage, b)
+
 	for {
+
 		select {
 		case <-done:
 			return
