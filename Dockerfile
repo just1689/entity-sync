@@ -5,9 +5,9 @@ RUN mkdir /user && \
     echo 'nobody:x:65534:' > /user/group
 RUN apk add --no-cache ca-certificates git
 WORKDIR /src
-COPY ../go.mod /src/
+COPY go.mod /src/
 RUN go mod download
-COPY .. .
+COPY . .
 WORKDIR /src/example
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app example.go
 
