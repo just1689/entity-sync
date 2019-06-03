@@ -39,7 +39,7 @@ func main() {
 	}
 
 	//Build the bridge
-	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr))
+	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr), dq.BuildSubscriber(nsqAddr))
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
@@ -60,11 +60,18 @@ func main() {
 
 	web.HandleEntity(mux, GlobalBridge)
 
+	logrus.Println("Starting serve on ", *listenLocal)
 	err = http.Serve(l, mux)
 	if err != nil {
 		panic(err)
 	}
 
+}
+
+type ItemV1 struct {
+	ID         string
+	Closed     bool
+	ClosedDate time.Time
 }
 
 func resolveName() {

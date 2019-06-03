@@ -8,11 +8,12 @@ import (
 	"sync"
 )
 
-func BuildBridge(queuePublisherBuilder shared.EntityHandler) *Bridge {
+func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler) *Bridge {
 	return &Bridge{
-		queuePublisherBuilder: queuePublisherBuilder,
-		queuePublishers:       make(map[shared.EntityType]shared.ByteHandler),
-		clients:               make([]*Client, 0),
+		queuePublisherBuilder:  queuePublisherBuilder,
+		queueSubscriberBuilder: queueSubscriberBuilder,
+		queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
+		clients:                make([]*Client, 0),
 	}
 }
 
