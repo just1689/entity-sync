@@ -1,6 +1,7 @@
 package dq
 
 import (
+	"fmt"
 	"github.com/bitly/go-nsq"
 	"github.com/just1689/entity-sync/shared"
 	uuid "github.com/satori/go.uuid"
@@ -14,13 +15,13 @@ func BuildPublisher(nsqAddr string) shared.EntityHandler {
 	}
 }
 
-func GetNSQProducer(nsqAddr string, entity shared.EntityType) shared.ByteHandler {
+func GetNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHandler {
 	config := nsq.NewConfig()
 	w, _ := nsq.NewProducer(nsqAddr, config)
 	producer := func(msg []byte) {
-		err := w.Publish(string(entity), msg)
+		err := w.Publish(entityType.GetQueueName(), msg)
 		if err != nil {
-			logrus.Panic("Could not publish to NSQ ", nsqAddr, "on topic", entity)
+			logrus.Panic("Could not publish to NSQ ", nsqAddr, "on topic", entityType)
 		}
 	}
 	return producer
@@ -34,7 +35,7 @@ func BuildSubscriber(nsqAddr string) shared.EntityByteHandler {
 
 func SubscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHandler) {
 	config := nsq.NewConfig()
-	q, _ := nsq.NewConsumer(string(entityType), uuid.NewV4().String(), config)
+	q, _ := nsq.NewConsumer(entityType.GetQueueName(), fmt.Sprint(uuid.NewV4().String(), "#ephemeral"), config)
 	q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		f(message.Body)
 		return nil
