@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/just1689/entity-sync/db"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
@@ -63,9 +64,11 @@ func (b *Bridge) Subscribe(entityType shared.EntityType) {
 func (b *Bridge) onNotify(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
+	logrus.Println("onNotify")
 
 	for _, client := range b.clients {
 		rowKey, found := client.Subscriptions[key.Hash()]
+		logrus.Println("onNotify ", rowKey.Hash(), found)
 		if !found {
 			logrus.Infoln("Client did not subscribe to", rowKey.Hash())
 			continue
@@ -90,6 +93,7 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 }
 
 func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
+	defer fmt.Println("Added client")
 	client := Client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
