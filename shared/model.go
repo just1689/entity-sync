@@ -9,6 +9,10 @@ type EntityKeyHandler func(entityKey EntityKey)
 
 type EntityType string
 
+func (e EntityType) GetQueueName() string {
+	return fmt.Sprint(e, "#ephemeral")
+}
+
 type EntityKey struct {
 	Entity EntityType `json:"entity"`
 	ID     string     `json:"id"`
