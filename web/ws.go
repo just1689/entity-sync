@@ -27,9 +27,8 @@ type Hub struct {
 
 type Getter func(val string) (item interface{}, err error)
 
-func NewHub(topic string) *Hub {
+func NewHub() *Hub {
 	return &Hub{
-		topic:      topic,
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -184,12 +183,12 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.readPump()
 }
 
-//func HandleEntity(mux *http.ServeMux, entity, id string, getter Getter) {
-//	itemHub := NewHub(entity, id, getter)
-//	go itemHub.Run()
-//
-//	mux.HandleFunc(fmt.Sprint("/ws/entity-sync/", entity), func(w http.ResponseWriter, r *http.Request) {
-//		ServeWs(itemHub, w, r)
-//	})
-//
-//}
+func HandleEntity(mux *http.ServeMux) {
+	itemHub := NewHub()
+	go itemHub.Run()
+
+	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
+		ServeWs(itemHub, w, r)
+	})
+
+}

@@ -6,7 +6,7 @@ var GlobalDatabaseHub = &DatabaseHub{
 	handlers: make(map[string]HandleUpdateClient),
 }
 
-type HandleUpdateClient func(rowKey shared.RowKey, sender shared.ByteHandler)
+type HandleUpdateClient func(rowKey shared.EntityKey, sender shared.ByteHandler)
 
 type DatabaseHub struct {
 	handlers map[string]HandleUpdateClient
@@ -17,7 +17,7 @@ func (d *DatabaseHub) AddUpdateHandler(entity string, client HandleUpdateClient)
 
 }
 
-func (d *DatabaseHub) ProcessUpdateHandler(key shared.RowKey, sender shared.ByteHandler) {
+func (d *DatabaseHub) ProcessUpdateHandler(key shared.EntityKey, sender shared.ByteHandler) {
 	handlerUpdateClient, found := d.handlers[key.Entity]
 	if found {
 		handlerUpdateClient(key, sender)
