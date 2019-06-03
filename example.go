@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"time"
 )
 
 const nsqAddr = "127.0.0.1:4150"
@@ -57,7 +58,17 @@ func resolveName() {
 		Name = fmt.Sprint("Reader", rand.Intn(100))
 	} else if *role == 2 {
 		Name = fmt.Sprint("Mutator", rand.Intn(100))
+		startMutator()
 	} else {
 		panic(errors.New("role can be 1 or 2 and nothing else"))
 	}
+}
+
+func startMutator() {
+	go func() {
+		for {
+			//TODO: mutate
+			time.Sleep(5 * time.Second)
+		}
+	}()
 }
