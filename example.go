@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/just1689/entity-sync/bridge"
+	"github.com/just1689/entity-sync/db"
 	"github.com/just1689/entity-sync/dq"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/just1689/entity-sync/web"
@@ -12,6 +14,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -44,6 +47,17 @@ func main() {
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
 	GlobalBridge.Subscribe(entityType)
 
+	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
+	db.GlobalDatabaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
+		item := fetch(rowKey)
+		b, err := json.Marshal(item)
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		sender(b)
+	})
+
 	web.HandleEntity(mux, GlobalBridge)
 
 	err = http.Serve(l, mux)
@@ -67,8 +81,24 @@ func resolveName() {
 func startMutator() {
 	go func() {
 		for {
-			//TODO: mutate
-			time.Sleep(5 * time.Second)
+			exampleMutex.Lock()
+			exampleItem.ClosedDate = time.Now()
+			exampleMutex.Unlock()
+			time.Sleep(2 * time.Second)
 		}
 	}()
+}
+
+var exampleMutex sync.Mutex
+var exampleItem = ItemV1{
+	ID:         "",
+	Closed:     true,
+	ClosedDate: time.Now(),
+}
+
+func fetch(rowKey shared.EntityKey) ItemV1 {
+	exampleMutex.Lock()
+	defer exampleMutex.Unlock()
+	exampleItem.ID = rowKey.ID
+	return exampleItem
 }
