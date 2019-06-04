@@ -28,14 +28,21 @@ var listenLocal = flag.String("listen", ":8080", "listen addr: :8080")
 func main() {
 	flag.Parse()
 	checkListenLocal()
+	var err error
 
 	mux := http.NewServeMux()
-	l, err := net.Listen("tcp", *listenLocal)
-	if err != nil {
+	var l net.Listener
+	if l, err = net.Listen("tcp", *listenLocal); err != nil {
 		logrus.Fatalln(err)
 	}
 
+	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
 	var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
+	databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
+		item := fetch(rowKey)
+		b, _ := json.Marshal(item)
+		pusher(b)
+	})
 
 	// The bridge matches communication from ws to nsq and from nsq to ws.
 	// It also calls on the db to resolve entityKey
@@ -50,17 +57,6 @@ func main() {
 
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
 	GlobalBridge.Subscribe(entityType)
-
-	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
-		item := fetch(rowKey)
-		b, err := json.Marshal(item)
-		if err != nil {
-			logrus.Errorln(err)
-			return
-		}
-		sender(b)
-	})
 
 	//Pass the mux and a client builder to the libraries handlers
 	esweb.SetupMuxBridge(mux, GlobalBridge.ClientBuilder)
