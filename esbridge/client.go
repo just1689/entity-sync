@@ -17,8 +17,8 @@ func (c *Client) UnSubscribe(key shared.EntityKey) {
 }
 
 func removeClient(b *Bridge, c *Client) {
-	for i, client := range b.clients {
-		if client == c {
+	for i, row := range b.clients {
+		if row == c {
 			b.clients[i] = b.clients[len(b.clients)-1]
 			b.clients = b.clients[:len(b.clients)-1]
 			break

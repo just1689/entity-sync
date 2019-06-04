@@ -71,11 +71,11 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	logrus.Println("onNotify")
-	for _, client := range b.clients {
-		if _, found := client.Subscriptions[key.Hash()]; found == false {
+	for _, c := range b.clients {
+		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		b.dbPullDataAndPush(key, client.ToWS)
+		b.dbPullDataAndPush(key, c.ToWS)
 	}
 }
 
@@ -89,12 +89,12 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 }
 
 func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
-	client := Client{
+	c := Client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
 		Subscriptions: make(map[string]shared.EntityKey),
 	}
-	b.clients = append(b.clients, &client)
-	b.blockOnDisconnect(&client)
-	return client.Subscribe, client.UnSubscribe, client.RemoteDC
+	b.clients = append(b.clients, &c)
+	b.blockOnDisconnect(&c)
+	return c.Subscribe, c.UnSubscribe, c.RemoteDC
 }
