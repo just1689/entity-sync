@@ -14,7 +14,7 @@ func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuil
 			queueSubscriberBuilder: queueSubscriberBuilder,
 			queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
 		},
-		clients:           make([]*Client, 0),
+		clients:           make([]*client, 0),
 		dbPullDataAndPush: dbPullDataAndPush,
 	}
 }
@@ -26,7 +26,7 @@ type Bridge struct {
 	queueFunctions QueueFunctions
 
 	//Websocket clients
-	clients []*Client
+	clients []*client
 
 	//Database function
 	dbPullDataAndPush shared.EntityKeyByteHandler
@@ -79,7 +79,7 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 	}
 }
 
-func (b *Bridge) blockOnDisconnect(c *Client) {
+func (b *Bridge) blockOnDisconnect(c *client) {
 	go func() {
 		<-c.RemoteDC
 		b.m.Lock()
@@ -89,7 +89,7 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 }
 
 func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
-	c := Client{
+	c := client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
 		Subscriptions: make(map[string]shared.EntityKey),
