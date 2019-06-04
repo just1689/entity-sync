@@ -63,7 +63,7 @@ func main() {
 	})
 
 	//Pass the mux and a client builder to the libraries handlers
-	esweb.HandleEntity(mux, GlobalBridge.ClientBuilder)
+	esweb.SetupMuxBridge(mux, GlobalBridge.ClientBuilder)
 
 	resolveName(GlobalBridge)
 
