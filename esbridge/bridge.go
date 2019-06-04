@@ -75,7 +75,6 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
-	logrus.Println("onQueueIncoming")
 	for _, c := range b.clients {
 		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
