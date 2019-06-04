@@ -9,27 +9,32 @@ import (
 
 func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbUpdateHandler shared.EntityKeyByteHandler) *Bridge {
 	return &Bridge{
-		queuePublisherBuilder:  queuePublisherBuilder,
-		queueSubscriberBuilder: queueSubscriberBuilder,
-		queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
-		clients:                make([]*Client, 0),
-		dbUpdateHandler:        dbUpdateHandler,
+		queueFunctions: QueueFunctions{
+			queuePublisherBuilder:  queuePublisherBuilder,
+			queueSubscriberBuilder: queueSubscriberBuilder,
+			queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
+		},
+		clients:         make([]*Client, 0),
+		dbUpdateHandler: dbUpdateHandler,
 	}
 }
 
 type Bridge struct {
 	m sync.Mutex
 
-	//queuePublishers write to on a entity
-	queuePublishers       map[shared.EntityType]shared.ByteHandler
-	queuePublisherBuilder shared.EntityHandler
+	queueFunctions QueueFunctions
 
-	//Creates subscribers
-	queueSubscriberBuilder shared.EntityByteHandler
-
+	//Websocket clients
 	clients []*Client
 
+	//Database function
 	dbUpdateHandler shared.EntityKeyByteHandler
+}
+
+type QueueFunctions struct {
+	queuePublishers        map[shared.EntityType]shared.ByteHandler
+	queuePublisherBuilder  shared.EntityHandler
+	queueSubscriberBuilder shared.EntityByteHandler
 }
 
 func (b *Bridge) removeClient(c *Client) {
@@ -43,13 +48,13 @@ func (b *Bridge) removeClient(c *Client) {
 }
 
 func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
-	b.queuePublishers[entity] = b.queuePublisherBuilder(entity)
+	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
 
 }
 
 //NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
 func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
-	pub, found := b.queuePublishers[key.Entity]
+	pub, found := b.queueFunctions.queuePublishers[key.Entity]
 	if !found {
 		logrus.Fatalln("Could not notify all for entity", key.Entity)
 	}
@@ -62,7 +67,7 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 }
 
 func (b *Bridge) Subscribe(entityType shared.EntityType) {
-	b.queueSubscriberBuilder(entityType, func(barr []byte) {
+	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
 		key := shared.EntityKey{}
 		if err := json.Unmarshal(barr, &key); err != nil {
 			logrus.Errorln(err)
