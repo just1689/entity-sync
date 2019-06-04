@@ -4,17 +4,17 @@ import "github.com/just1689/entity-sync/shared"
 
 func NewDatabaseHub() *DatabaseHub {
 	return &DatabaseHub{
-		handlers: make(map[shared.EntityType]HandleUpdateClient),
+		handlers: make(map[shared.EntityType]handleUpdateClient),
 	}
 }
 
-type HandleUpdateClient func(rowKey shared.EntityKey, sender shared.ByteHandler)
+type handleUpdateClient func(rowKey shared.EntityKey, sender shared.ByteHandler)
 
 type DatabaseHub struct {
-	handlers map[shared.EntityType]HandleUpdateClient
+	handlers map[shared.EntityType]handleUpdateClient
 }
 
-func (d *DatabaseHub) AddDataPullAndPushHandler(entityType shared.EntityType, client HandleUpdateClient) {
+func (d *DatabaseHub) AddDataPullAndPushHandler(entityType shared.EntityType, client handleUpdateClient) {
 	d.handlers[entityType] = client
 
 }
