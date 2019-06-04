@@ -184,9 +184,10 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
+		hub:               hub,
+		conn:              conn,
+		send:              make(chan []byte, 256),
+		entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
 	}
 	client.hub.register <- client
 

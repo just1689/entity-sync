@@ -34,7 +34,7 @@ func main() {
 	defer c.Close()
 
 	done := make(chan struct{})
-	readMessages(done, c)
+	go readMessages(done, c)
 
 	//Subscribe to entity for a particular ID
 	var b []byte
@@ -44,6 +44,7 @@ func main() {
 	}); err != nil {
 		logrus.Fatal(err)
 	}
+	logrus.Println("Sending", string(b))
 	if err = c.WriteMessage(websocket.TextMessage, b); err != nil {
 		logrus.Fatal(err)
 	}
@@ -70,6 +71,7 @@ func main() {
 
 func readMessages(done chan struct{}, c *websocket.Conn) {
 	defer close(done)
+	logrus.Println("Starting reader (blocking)")
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {

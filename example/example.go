@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const nsqAddr = "nsqd:4150"
+const nsqAddr = "192.168.88.26:30000"
 const entityType shared.EntityType = "items"
 
 var GlobalBridge *bridge.Bridge
