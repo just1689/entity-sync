@@ -29,14 +29,14 @@ func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
 func (h *Hub) run() {
 	for {
 		select {
-		case client := <-h.register:
-			h.clients[client] = true
-		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
-				client.bridgeProxy.queueDCNotify <- true
-				close(client.bridgeProxy.queueDCNotify)
+		case c := <-h.register:
+			h.clients[c] = true
+		case c := <-h.unregister:
+			if _, ok := h.clients[c]; ok {
+				delete(h.clients, c)
+				close(c.send)
+				c.bridgeProxy.queueDCNotify <- true
+				close(c.bridgeProxy.queueDCNotify)
 			}
 		}
 	}
@@ -159,7 +159,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &Client{
+	c := &Client{
 		hub:  hub,
 		conn: conn,
 		send: make(chan []byte, 256),
@@ -167,22 +167,21 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 			entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
 		},
 	}
-	client.hub.register <- client
+	c.hub.register <- c
 
-	client.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
-		client.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
-		client.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(func(barr []byte) {
-		client.send <- barr
+	c.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
+		c.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
+		c.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(func(barr []byte) {
+		c.send <- barr
 	})
 
-	go client.writePump()
-	go client.readPump()
+	go c.writePump()
+	go c.readPump()
 }
 
 func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
 	itemHub := newHub(bridgeClientBuilder)
 	go itemHub.run()
-
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
 		ServeWs(itemHub, w, r)
 	})
