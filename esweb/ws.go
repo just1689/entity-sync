@@ -124,6 +124,7 @@ func (c *Client) writePump() {
 		c.conn.Close()
 	}()
 	for {
+		var err error
 		select {
 		case message, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
@@ -131,14 +132,9 @@ func (c *Client) writePump() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
-			if err := w.Close(); err != nil {
-				return
+			if err = c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				logrus.Errorln(err)
+				continue
 			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
