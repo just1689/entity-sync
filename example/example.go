@@ -46,23 +46,23 @@ func main() {
 
 	// The bridge matches communication from ws to nsq and from nsq to ws.
 	// It also calls on the db to resolve entityKey
-	var GlobalBridge *esbridge.Bridge = esbridge.BuildBridge(
+	var bridge *esbridge.Bridge = esbridge.BuildBridge(
 		esq.BuildPublisher(*nsqAddr),
 		esq.BuildSubscriber(*nsqAddr),
 		databaseHub.PullDataAndPush,
 	)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
-	GlobalBridge.CreateQueuePublishers(entityType)
+	bridge.CreateQueuePublishers(entityType)
 
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
-	GlobalBridge.Subscribe(entityType)
+	bridge.Subscribe(entityType)
 
 	//Pass the mux and a client builder to the libraries handlers
-	esweb.SetupMuxBridge(mux, GlobalBridge.ClientBuilder)
+	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
 
 	if *role == "2" {
-		startMutator(GlobalBridge)
+		startMutator(bridge)
 	}
 
 	logrus.Println("Starting serve on ", *listenLocal)
