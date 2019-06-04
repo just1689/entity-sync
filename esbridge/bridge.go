@@ -38,8 +38,23 @@ type queueFunctions struct {
 	queueSubscriberBuilder shared.EntityByteHandler
 }
 
-func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
+func (b *Bridge) SyncEntityType(entityType shared.EntityType) {
+	b.createQueuePublishers(entityType)
+	b.subscribe(entityType)
+}
+
+func (b *Bridge) createQueuePublishers(entity shared.EntityType) {
 	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
+}
+func (b *Bridge) subscribe(entityType shared.EntityType) {
+	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
+		key := shared.EntityKey{}
+		if err := json.Unmarshal(barr, &key); err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		b.onNotify(key)
+	})
 }
 
 //NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
@@ -54,17 +69,6 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 	}
 	pub(barr)
 
-}
-
-func (b *Bridge) Subscribe(entityType shared.EntityType) {
-	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
-		key := shared.EntityKey{}
-		if err := json.Unmarshal(barr, &key); err != nil {
-			logrus.Errorln(err)
-			return
-		}
-		b.onNotify(key)
-	})
 }
 
 func (b *Bridge) onNotify(key shared.EntityKey) {

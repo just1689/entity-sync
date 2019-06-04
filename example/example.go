@@ -49,10 +49,10 @@ func main() {
 	)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
-	bridge.CreateQueuePublishers(entityType)
+	bridge.createQueuePublishers(entityType)
 
 	//Ensure the bridge will send NSQ messages for entityType to onNotify
-	bridge.Subscribe(entityType)
+	bridge.subscribe(entityType)
 
 	//Pass the mux and a client builder to the libraries handlers
 	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)

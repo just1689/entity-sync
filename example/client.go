@@ -36,7 +36,7 @@ func main() {
 	done := make(chan struct{})
 	go readMessages(done, c)
 
-	//Subscribe to entity for a particular ID
+	//subscribe to entity for a particular ID
 	var b []byte
 	if b, err = json.Marshal(shared.MessageAction{
 		Action:    shared.ActionSubscribe,
