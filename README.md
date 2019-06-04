@@ -1,6 +1,7 @@
 # Entity Sync
 
-
+<img src="https://goreportcard.com/badge/github.com/just1689/entity-sync"><br />
+<br />
 
 Push entities to websocket clients onchange to keep clients in sync.
 
