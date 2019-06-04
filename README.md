@@ -4,7 +4,7 @@
 
 Push entities to websocket clients onchange to keep clients in sync.
 
-
+<img src="docs/diagram.svg">
 
 
 ## Example
