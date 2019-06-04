@@ -18,7 +18,9 @@ Push entities to websocket clients onchange to keep clients in sync.
 
 ## Roadmap
 - Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user may request the KeyEntity they ask for.
-- Provide a method for incoming websocket requests that don't match any concern for this library.
+- Provide a method for incoming websocket requests that don't match any concern for this library to pass through.
+- A helper package for a simple one call setup.
+
 
 
 ## Example
