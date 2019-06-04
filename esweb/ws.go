@@ -26,7 +26,7 @@ func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
 	}
 }
 
-func (h *Hub) Run() {
+func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
@@ -181,7 +181,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
 	itemHub := newHub(bridgeClientBuilder)
-	go itemHub.Run()
+	go itemHub.run()
 
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
 		ServeWs(itemHub, w, r)
