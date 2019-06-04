@@ -3,7 +3,6 @@ module github.com/just1689/entity-sync
 go 1.12
 
 require (
-	github.com/bitly/go-nsq v1.0.7
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/websocket v1.4.0
 	github.com/kr/pretty v0.1.0 // indirect
