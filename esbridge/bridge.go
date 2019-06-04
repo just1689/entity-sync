@@ -38,6 +38,7 @@ type queueFunctions struct {
 	queueSubscriberBuilder shared.EntityByteHandler
 }
 
+//SyncEntityType informs the framework that it needs to publish changes for this entity type and receive them
 func (b *Bridge) SyncEntityType(entityType shared.EntityType) {
 	b.createQueuePublishers(entityType)
 	b.subscribe(entityType)
