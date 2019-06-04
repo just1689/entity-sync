@@ -82,8 +82,7 @@ type bridgeProxy struct {
 
 func (c *client) handleReadMsg(message []byte) {
 	m := shared.MessageAction{}
-	err := json.Unmarshal(message, &m)
-	if err != nil {
+	if err := json.Unmarshal(message, &m); err != nil {
 		logrus.Errorln(err)
 		return
 	}
