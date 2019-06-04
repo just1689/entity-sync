@@ -94,17 +94,11 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub *Hub
-
-	// The websocket connection.
-	conn *websocket.Conn
-
-	// Buffered channel of outbound messages.
-	send chan []byte
-
-	subFunc       shared.EntityKeyHandler
-	unSubFunc     shared.EntityKeyHandler
-	queueDCNotify chan bool
+	hub               *Hub
+	conn              *websocket.Conn
+	send              chan []byte
+	entityKeyHandlers map[shared.Action]shared.EntityKeyHandler
+	queueDCNotify     chan bool
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -134,10 +128,9 @@ func (c *Client) readPump() {
 			logrus.Errorln(err)
 			continue
 		}
-		if m.Action == shared.ActionSubscribe {
-			c.subFunc(m.EntityKey)
-		} else if m.Action == shared.ActionUnSubscribe {
-			c.unSubFunc(m.EntityKey)
+
+		if f, found := c.entityKeyHandlers[m.Action]; found {
+			f(m.EntityKey)
 		} else {
 			logrus.Errorln("Unknown action", m.Action)
 			continue
@@ -197,7 +190,9 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 	client.hub.register <- client
 
-	client.subFunc, client.unSubFunc, client.queueDCNotify = hub.bridge.ClientBuilder(func(barr []byte) {
+	client.entityKeyHandlers[shared.ActionSubscribe],
+		client.entityKeyHandlers[shared.ActionUnSubscribe],
+		client.queueDCNotify = hub.bridge.ClientBuilder(func(barr []byte) {
 		client.send <- barr
 	})
 
