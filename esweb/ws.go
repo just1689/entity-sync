@@ -17,9 +17,7 @@ type Hub struct {
 	bridgeClientBuilder shared.ByteHandlingRemoteProxy
 }
 
-type Getter func(val string) (item interface{}, err error)
-
-func NewHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
+func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
 	return &Hub{
 		register:            make(chan *Client),
 		unregister:          make(chan *Client),
@@ -182,7 +180,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
-	itemHub := NewHub(bridgeClientBuilder)
+	itemHub := newHub(bridgeClientBuilder)
 	go itemHub.Run()
 
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
