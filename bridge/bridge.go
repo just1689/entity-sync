@@ -32,6 +32,16 @@ type Bridge struct {
 	dbUpdateHandler shared.EntityKeyByteHandler
 }
 
+func (b *Bridge) removeClient(c *Client) {
+	for i, client := range b.clients {
+		if client == c {
+			b.clients[i] = b.clients[len(b.clients)-1]
+			b.clients = b.clients[:len(b.clients)-1]
+			break
+		}
+	}
+}
+
 func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
 	b.queuePublishers[entity] = b.queuePublisherBuilder(entity)
 
@@ -67,15 +77,10 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	logrus.Println("onNotify")
-
 	for _, client := range b.clients {
-		rowKey, found := client.Subscriptions[key.Hash()]
-		logrus.Println("onNotify ", rowKey.Hash(), found)
-		if !found {
-			logrus.Infoln("Client did not subscribe to", rowKey.Hash())
+		if _, found := client.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		logrus.Println("Found client to notify about", rowKey.Hash())
 		b.dbUpdateHandler(key, client.ToWS)
 	}
 }
@@ -84,12 +89,7 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 	go func() {
 		<-c.RemoteDC
 		b.m.Lock()
-		for i, client := range b.clients {
-			if client == c {
-				b.clients[i] = b.clients[len(b.clients)-1]
-				b.clients = b.clients[:len(b.clients)-1]
-			}
-		}
+		b.removeClient(c)
 		b.m.Unlock()
 	}()
 }
