@@ -45,11 +45,8 @@ var bridge *esbridge.Bridge = esbridge.BuildBridge(
     databaseHub.PullDataAndPush,
 )
 
-//Create publisher for NSQ (Allows to call NotifyAllOfChange())
-bridge.CreateQueuePublishers(entityType)
-
-//Ensure the bridge will send NSQ messages for entityType to onNotify
-bridge.Subscribe(entityType)
+//Sync entity will ensure that you can PUB and SUB for this entity type
+bridge.SyncEntityType(entityType)
 
 //Pass the mux and a client builder to the libraries handlers
 esweb.SetupMuxBridge(mux, bridge.ClientBuilder)

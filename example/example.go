@@ -48,11 +48,8 @@ func main() {
 		databaseHub.PullDataAndPush,
 	)
 
-	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
-	bridge.createQueuePublishers(entityType)
-
-	//Ensure the bridge will send NSQ messages for entityType to onNotify
-	bridge.subscribe(entityType)
+	//Sync entity will ensure that you can PUB and SUB for this entity type
+	bridge.SyncEntityType(entityType)
 
 	//Pass the mux and a client builder to the libraries handlers
 	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
