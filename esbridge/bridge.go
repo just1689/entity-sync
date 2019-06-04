@@ -53,7 +53,7 @@ func (b *Bridge) subscribe(entityType shared.EntityType) {
 			logrus.Errorln(err)
 			return
 		}
-		b.onNotify(key)
+		b.onQueueIncoming(key)
 	})
 }
 
@@ -71,10 +71,10 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 
 }
 
-func (b *Bridge) onNotify(key shared.EntityKey) {
+func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
-	logrus.Println("onNotify")
+	logrus.Println("onQueueIncoming")
 	for _, c := range b.clients {
 		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
