@@ -37,10 +37,13 @@ func main() {
 
 	var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
 
-	var GlobalBridge *esbridge.Bridge
-	//Build the bridge
-	// The bridge matches communication from ws to nsq and from nsq to ws. It also calls on the db to resolve entityKey
-	GlobalBridge = esbridge.BuildBridge(esnsq.BuildPublisher(nsqAddr), esnsq.BuildSubscriber(nsqAddr), databaseHub.ProcessUpdateHandler)
+	// The bridge matches communication from ws to nsq and from nsq to ws.
+	// It also calls on the db to resolve entityKey
+	var GlobalBridge *esbridge.Bridge = esbridge.BuildBridge(
+		esnsq.BuildPublisher(nsqAddr),
+		esnsq.BuildSubscriber(nsqAddr),
+		databaseHub.ProcessUpdateHandler,
+	)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
