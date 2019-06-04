@@ -2,8 +2,10 @@ package esdb
 
 import "github.com/just1689/entity-sync/shared"
 
-var GlobalDatabaseHub = &DatabaseHub{
-	handlers: make(map[shared.EntityType]HandleUpdateClient),
+func NewDatabaseHub() *DatabaseHub {
+	return &DatabaseHub{
+		handlers: make(map[shared.EntityType]HandleUpdateClient),
+	}
 }
 
 type HandleUpdateClient func(rowKey shared.EntityKey, sender shared.ByteHandler)

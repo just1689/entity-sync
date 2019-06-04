@@ -22,8 +22,6 @@ import (
 const nsqAddr = "192.168.88.26:30000"
 const entityType shared.EntityType = "items"
 
-var GlobalBridge *esbridge.Bridge
-
 var Name string
 var listenLocal = flag.String("listen", ":8080", "listen addr: :8080")
 
@@ -37,9 +35,12 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
+	var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
+
+	var GlobalBridge *esbridge.Bridge
 	//Build the bridge
 	// The bridge matches communication from ws to nsq and from nsq to ws. It also calls on the db to resolve entityKey
-	GlobalBridge = esbridge.BuildBridge(esnsq.BuildPublisher(nsqAddr), esnsq.BuildSubscriber(nsqAddr), esdb.GlobalDatabaseHub.ProcessUpdateHandler)
+	GlobalBridge = esbridge.BuildBridge(esnsq.BuildPublisher(nsqAddr), esnsq.BuildSubscriber(nsqAddr), databaseHub.ProcessUpdateHandler)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
@@ -48,7 +49,7 @@ func main() {
 	GlobalBridge.Subscribe(entityType)
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	esdb.GlobalDatabaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
+	databaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
 		item := fetch(rowKey)
 		b, err := json.Marshal(item)
 		if err != nil {
