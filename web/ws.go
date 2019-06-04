@@ -10,23 +10,10 @@ import (
 	"time"
 )
 
-// Hub maintains the set of active clients and broadcasts messages to the
-// clients.
 type Hub struct {
-	topic string
-
-	// Registered clients.
-	clients map[*Client]bool
-
-	// Inbound messages from the clients.
-	broadcast chan []byte
-
-	// Register requests from the clients.
-	register chan *Client
-
-	// Unregister requests from clients.
-	unregister chan *Client
-
+	clients             map[*Client]bool
+	register            chan *Client
+	unregister          chan *Client
 	bridgeClientBuilder shared.ByteHandlingRemoteProxy
 }
 
@@ -34,7 +21,6 @@ type Getter func(val string) (item interface{}, err error)
 
 func NewHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
 	return &Hub{
-		broadcast:           make(chan []byte),
 		register:            make(chan *Client),
 		unregister:          make(chan *Client),
 		clients:             make(map[*Client]bool),
@@ -54,15 +40,6 @@ func (h *Hub) Run() {
 				client.queueDCNotify <- true
 				close(client.queueDCNotify)
 			}
-		case message := <-h.broadcast:
-			for client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-				}
-			}
 		}
 	}
 }
@@ -70,20 +47,12 @@ func (h *Hub) Run() {
 const (
 	// Time allowed to write a message to the peer.
 	writeWait = 10 * time.Second
-
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
-
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
-
 	// Maximum message size allowed from peer.
 	maxMessageSize = 512
-)
-
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
 )
 
 var upgrader = websocket.Upgrader{
