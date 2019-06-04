@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const nsqAddr = "192.168.88.26:30000"
+const nsqAddr = "nsqd:4150"
 const entityType shared.EntityType = "items"
 
 var GlobalBridge *bridge.Bridge
@@ -29,6 +29,7 @@ var listenLocal = flag.String("listen", ":8080", "listen addr: :8080")
 
 func main() {
 	flag.Parse()
+	checkListenLocal()
 
 	mux := http.NewServeMux()
 	l, err := net.Listen("tcp", *listenLocal)
@@ -67,6 +68,13 @@ func main() {
 		panic(err)
 	}
 
+}
+
+func checkListenLocal() {
+	l := os.Getenv("listen")
+	if l != "" {
+		listenLocal = &l
+	}
 }
 
 type ItemV1 struct {

@@ -2,16 +2,15 @@ package shared
 
 import "fmt"
 
+type EntityType string
 type ByteHandler func([]byte)
-type EntityByteHandler func(entity EntityType, handler ByteHandler)
 type EntityHandler func(entity EntityType) ByteHandler
 type EntityKeyHandler func(entityKey EntityKey)
+type EntityByteHandler func(entity EntityType, handler ByteHandler)
 type EntityKeyByteHandler func(entityKey EntityKey, handler ByteHandler)
 
-type EntityType string
-
 func (e EntityType) GetQueueName() string {
-	return fmt.Sprint(e, "")
+	return string(e)
 }
 
 type EntityKey struct {

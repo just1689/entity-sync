@@ -15,6 +15,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app example.go
 FROM scratch as final
 COPY --from=builder /user/group /user/passwd /etc/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /src/app /app
+COPY --from=builder /src/example/app /app
 USER nobody:nobody
 ENTRYPOINT ["/app"]
