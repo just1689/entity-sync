@@ -42,7 +42,7 @@ func main() {
 	var GlobalBridge *esbridge.Bridge = esbridge.BuildBridge(
 		esnsq.BuildPublisher(nsqAddr),
 		esnsq.BuildSubscriber(nsqAddr),
-		databaseHub.ProcessUpdateHandler,
+		databaseHub.PullDataAndPush,
 	)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
@@ -52,7 +52,7 @@ func main() {
 	GlobalBridge.Subscribe(entityType)
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	databaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
+	databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
 		item := fetch(rowKey)
 		b, err := json.Marshal(item)
 		if err != nil {

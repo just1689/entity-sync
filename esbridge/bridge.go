@@ -7,15 +7,15 @@ import (
 	"sync"
 )
 
-func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbUpdateHandler shared.EntityKeyByteHandler) *Bridge {
+func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbPullDataAndPush shared.EntityKeyByteHandler) *Bridge {
 	return &Bridge{
 		queueFunctions: QueueFunctions{
 			queuePublisherBuilder:  queuePublisherBuilder,
 			queueSubscriberBuilder: queueSubscriberBuilder,
 			queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
 		},
-		clients:         make([]*Client, 0),
-		dbUpdateHandler: dbUpdateHandler,
+		clients:           make([]*Client, 0),
+		dbPullDataAndPush: dbPullDataAndPush,
 	}
 }
 
@@ -28,7 +28,7 @@ type Bridge struct {
 	clients []*Client
 
 	//Database function
-	dbUpdateHandler shared.EntityKeyByteHandler
+	dbPullDataAndPush shared.EntityKeyByteHandler
 }
 
 type QueueFunctions struct {
@@ -84,7 +84,7 @@ func (b *Bridge) onNotify(key shared.EntityKey) {
 		if _, found := client.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		b.dbUpdateHandler(key, client.ToWS)
+		b.dbPullDataAndPush(key, client.ToWS)
 	}
 }
 
