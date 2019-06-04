@@ -33,7 +33,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
+	databaseHub := esdb.NewDatabaseHub()
 	databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
 		item := fetch(rowKey)
 		b, _ := json.Marshal(item)
@@ -42,7 +42,7 @@ func main() {
 
 	// The bridge matches communication from ws to nsq and from nsq to ws.
 	// It also calls on the db to resolve entityKey
-	var bridge *esbridge.Bridge = esbridge.BuildBridge(
+	bridge := esbridge.BuildBridge(
 		esq.BuildPublisher(*nsqAddr),
 		esq.BuildSubscriber(*nsqAddr),
 		databaseHub.PullDataAndPush,
