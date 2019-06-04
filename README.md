@@ -26,16 +26,17 @@ Push entities to websocket clients onchange to keep clients in sync.
 ### Server setup
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
-//Create your own mux
 mux := http.NewServeMux()
-l, err := net.Listen("tcp", *listenLocal)
-if err != nil {
-    logrus.Fatalln(err)
-}
+l, _ := net.Listen("tcp", *listenLocal)
+...
+
+//Create a database hub for handling fetching data for various EntityKeys
+var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
 
 //Build the bridge
+var GlobalBridge *esbridge.Bridge
 // The bridge matches communication from ws to nsq and from nsq to ws. It also calls on the db to resolve entityKey
-GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr), dq.BuildSubscriber(nsqAddr), db.GlobalDatabaseHub.ProcessUpdateHandler)
+GlobalBridge = esbridge.BuildBridge(esnsq.BuildPublisher(nsqAddr), esnsq.BuildSubscriber(nsqAddr), databaseHub.ProcessUpdateHandler)
 
 //Create publisher for NSQ (Allows to call NotifyAllOfChange())
 GlobalBridge.CreateQueuePublishers(entityType)
@@ -44,21 +45,17 @@ GlobalBridge.CreateQueuePublishers(entityType)
 GlobalBridge.Subscribe(entityType)
 
 //Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-db.GlobalDatabaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
-    item := ...
-    b, _ := json.Marshall(item)
+databaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
+    item := ... //Implement however you get your data.
+    b, err := json.Marshal(item)
+    ...
     sender(b)
 })
 
-//Give the mux and bridge to the web handler
-web.HandleEntity(mux, GlobalBridge)
+//Pass the mux and a client builder to the libraries handlers
+esweb.HandleEntity(mux, GlobalBridge.ClientBuilder)
 
-//Start the listener on that mux
-logrus.Println("Starting serve on ", *listenLocal)
-err = http.Serve(l, mux)
-if err != nil {
-    panic(err)
-}
+http.Serve(l, mux)
 ```
 
 ### Connect clients

@@ -59,13 +59,13 @@ func main() {
 		sender(b)
 	})
 
+	//Pass the mux and a client builder to the libraries handlers
 	esweb.HandleEntity(mux, GlobalBridge.ClientBuilder)
 
 	resolveName(GlobalBridge)
 
 	logrus.Println("Starting serve on ", *listenLocal)
-	err = http.Serve(l, mux)
-	if err != nil {
+	if err = http.Serve(l, mux); err != nil {
 		panic(err)
 	}
 
