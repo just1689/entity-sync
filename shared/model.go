@@ -8,6 +8,7 @@ type EntityHandler func(entity EntityType) ByteHandler
 type EntityKeyHandler func(entityKey EntityKey)
 type EntityByteHandler func(entity EntityType, handler ByteHandler)
 type EntityKeyByteHandler func(entityKey EntityKey, handler ByteHandler)
+type ByteHandlingRemoteProxy func(ByteHandler) (sub EntityKeyHandler, unSub EntityKeyHandler, dc chan bool)
 
 func (e EntityType) GetQueueName() string {
 	return string(e)

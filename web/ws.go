@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/just1689/entity-sync/bridge"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
 	"log"
@@ -28,18 +27,18 @@ type Hub struct {
 	// Unregister requests from clients.
 	unregister chan *Client
 
-	bridge *bridge.Bridge
+	bridgeClientBuilder shared.ByteHandlingRemoteProxy
 }
 
 type Getter func(val string) (item interface{}, err error)
 
-func NewHub(b *bridge.Bridge) *Hub {
+func NewHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
 	return &Hub{
-		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
-		bridge:     b,
+		broadcast:           make(chan []byte),
+		register:            make(chan *Client),
+		unregister:          make(chan *Client),
+		clients:             make(map[*Client]bool),
+		bridgeClientBuilder: bridgeClientBuilder,
 	}
 }
 
@@ -193,7 +192,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	client.entityKeyHandlers[shared.ActionSubscribe],
 		client.entityKeyHandlers[shared.ActionUnSubscribe],
-		client.queueDCNotify = hub.bridge.ClientBuilder(func(barr []byte) {
+		client.queueDCNotify = hub.bridgeClientBuilder(func(barr []byte) {
 		client.send <- barr
 	})
 
@@ -201,8 +200,8 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.readPump()
 }
 
-func HandleEntity(mux *http.ServeMux, b *bridge.Bridge) {
-	itemHub := NewHub(b)
+func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+	itemHub := NewHub(bridgeClientBuilder)
 	go itemHub.Run()
 
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
