@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/just1689/entity-sync/esbridge"
 	"github.com/just1689/entity-sync/esdb"
-	"github.com/just1689/entity-sync/esnsq"
+	"github.com/just1689/entity-sync/esq"
 	"github.com/just1689/entity-sync/esweb"
 	"github.com/just1689/entity-sync/shared"
 	"github.com/sirupsen/logrus"
@@ -47,8 +47,8 @@ func main() {
 	// The bridge matches communication from ws to nsq and from nsq to ws.
 	// It also calls on the db to resolve entityKey
 	var GlobalBridge *esbridge.Bridge = esbridge.BuildBridge(
-		esnsq.BuildPublisher(nsqAddr),
-		esnsq.BuildSubscriber(nsqAddr),
+		esq.BuildPublisher(nsqAddr),
+		esq.BuildSubscriber(nsqAddr),
 		databaseHub.PullDataAndPush,
 	)
 
