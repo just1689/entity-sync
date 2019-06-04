@@ -1,7 +1,8 @@
 # Entity Sync
 
-Example:
+## Example
 
+Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
 
 //Create your own mux
@@ -39,3 +40,23 @@ if err != nil {
 }
 
 ```
+
+Connect any number of clients:
+1. Connect to the server over websocket ws://host:port/ws/entity-sync/
+2. Send a subscription request
+ 
+```json
+{
+    "action": "subscribe",
+    "entityKey": {
+        "id": "100",
+        "entity": "items"
+    }
+}
+```
+
+On the server: make some change to the item in question, then call:
+`bridge.NotifyAllOfChange(key)` where key is a `KeyEntity`.
+
+All connected clients over websockets will receive messages for the EntityKey/s to which they are subscribed.
+
