@@ -22,6 +22,7 @@ func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuil
 type Bridge struct {
 	m sync.Mutex
 
+	//Allows subscribing and pushing to remote queues
 	queueFunctions QueueFunctions
 
 	//Websocket clients
