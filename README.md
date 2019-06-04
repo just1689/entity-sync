@@ -77,8 +77,8 @@ Connect any number of clients:
 ```
 ### Mutate entity & notify
 
-On the server: make some change to the item in question, then call:
-`bridge.NotifyAllOfChange(entityKey)` where entityKey is a `KeyEntity`.
+Make some change to the item in question where it is persisted and then call
+`bridge.NotifyAllOfChange(entityKey)` where entityKey is a `shared.EntityKey`.
 
 All connected clients over websockets will receive messages for the EntityKey/s to which they are subscribed.
 
