@@ -64,8 +64,7 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 func (b *Bridge) Subscribe(entityType shared.EntityType) {
 	b.queueSubscriberBuilder(entityType, func(barr []byte) {
 		key := shared.EntityKey{}
-		err := json.Unmarshal(barr, &key)
-		if err != nil {
+		if err := json.Unmarshal(barr, &key); err != nil {
 			logrus.Errorln(err)
 			return
 		}
