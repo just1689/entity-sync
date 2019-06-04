@@ -128,7 +128,6 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-
 		m := shared.MessageAction{}
 		err = json.Unmarshal(message, &m)
 		if err != nil {
@@ -143,8 +142,6 @@ func (c *Client) readPump() {
 			logrus.Errorln("Unknown action", m.Action)
 			continue
 		}
-
-		//c.hub.broadcast <- message
 	}
 }
 
@@ -164,23 +161,14 @@ func (c *Client) writePump() {
 		case message, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
-				// The hub closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 			w.Write(message)
-
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
 
 			if err := w.Close(); err != nil {
 				return
