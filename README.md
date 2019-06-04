@@ -28,10 +28,6 @@ Connect the server to EntitySync. Wire the your mux to the bridge and provide a 
 ```go
 //A standard mux and http listener
 mux := http.NewServeMux()
-var l net.Listener
-if l, err = net.Listen("tcp", *listenLocal); err != nil {
-...
-}
 
 //Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
 var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
@@ -59,6 +55,10 @@ bridge.Subscribe(entityType)
 esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
 
 
+var l net.Listener
+if l, err = net.Listen("tcp", *listenLocal); err != nil {
+...
+}
 http.Serve(l, mux)
 ```
 

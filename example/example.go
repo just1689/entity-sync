@@ -31,10 +31,6 @@ func main() {
 
 	//A standard mux and http listener
 	mux := http.NewServeMux()
-	var l net.Listener
-	if l, err = net.Listen("tcp", *listenLocal); err != nil {
-		logrus.Fatalln(err)
-	}
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
 	var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
@@ -66,6 +62,10 @@ func main() {
 	}
 
 	logrus.Println("Starting serve on ", *listenLocal)
+	var l net.Listener
+	if l, err = net.Listen("tcp", *listenLocal); err != nil {
+		logrus.Fatalln(err)
+	}
 	if err = http.Serve(l, mux); err != nil {
 		panic(err)
 	}
