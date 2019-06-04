@@ -69,6 +69,20 @@ type Client struct {
 	queueDCNotify     chan bool
 }
 
+func (c *Client) handleReadMsg(message []byte) {
+	m := shared.MessageAction{}
+	err := json.Unmarshal(message, &m)
+	if err != nil {
+		logrus.Errorln(err)
+		return
+	}
+	if f, found := c.entityKeyHandlers[m.Action]; found {
+		f(m.EntityKey)
+	} else {
+		logrus.Errorln("Unknown action", m.Action)
+	}
+}
+
 // readPump pumps messages from the websocket connection to the hub.
 //
 // The application runs readPump in a per-connection goroutine. The application
@@ -90,19 +104,7 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		m := shared.MessageAction{}
-		err = json.Unmarshal(message, &m)
-		if err != nil {
-			logrus.Errorln(err)
-			continue
-		}
-
-		if f, found := c.entityKeyHandlers[m.Action]; found {
-			f(m.EntityKey)
-		} else {
-			logrus.Errorln("Unknown action", m.Action)
-			continue
-		}
+		c.handleReadMsg(message)
 	}
 }
 
