@@ -9,7 +9,7 @@ import (
 
 func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbPullDataAndPush shared.EntityKeyByteHandler) *Bridge {
 	return &Bridge{
-		queueFunctions: QueueFunctions{
+		queueFunctions: queueFunctions{
 			queuePublisherBuilder:  queuePublisherBuilder,
 			queueSubscriberBuilder: queueSubscriberBuilder,
 			queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
@@ -23,7 +23,7 @@ type Bridge struct {
 	m sync.Mutex
 
 	//Allows subscribing and pushing to remote queues
-	queueFunctions QueueFunctions
+	queueFunctions queueFunctions
 
 	//Websocket clients
 	clients []*client
@@ -32,7 +32,7 @@ type Bridge struct {
 	dbPullDataAndPush shared.EntityKeyByteHandler
 }
 
-type QueueFunctions struct {
+type queueFunctions struct {
 	queuePublishers        map[shared.EntityType]shared.ByteHandler
 	queuePublisherBuilder  shared.EntityHandler
 	queueSubscriberBuilder shared.EntityByteHandler
