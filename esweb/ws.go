@@ -100,6 +100,10 @@ func (c *Client) readPump() {
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	readPumpToClient(c)
+}
+
+func readPumpToClient(c *Client) {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -123,6 +127,10 @@ func (c *Client) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
+	writePumpToClient(c, ticker)
+}
+
+func writePumpToClient(c *Client, ticker *time.Ticker) {
 	for {
 		var err error
 		select {
