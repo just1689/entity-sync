@@ -5,11 +5,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/just1689/entity-sync/bridge"
-	"github.com/just1689/entity-sync/db"
-	"github.com/just1689/entity-sync/dq"
+	"github.com/just1689/entity-sync/esbridge"
+	"github.com/just1689/entity-sync/esdb"
+	"github.com/just1689/entity-sync/esnsq"
+	"github.com/just1689/entity-sync/esweb"
 	"github.com/just1689/entity-sync/shared"
-	"github.com/just1689/entity-sync/web"
 	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
@@ -22,7 +22,7 @@ import (
 const nsqAddr = "192.168.88.26:30000"
 const entityType shared.EntityType = "items"
 
-var GlobalBridge *bridge.Bridge
+var GlobalBridge *esbridge.Bridge
 
 var Name string
 var listenLocal = flag.String("listen", ":8080", "listen addr: :8080")
@@ -39,7 +39,7 @@ func main() {
 
 	//Build the bridge
 	// The bridge matches communication from ws to nsq and from nsq to ws. It also calls on the db to resolve entityKey
-	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr), dq.BuildSubscriber(nsqAddr), db.GlobalDatabaseHub.ProcessUpdateHandler)
+	GlobalBridge = esbridge.BuildBridge(esnsq.BuildPublisher(nsqAddr), esnsq.BuildSubscriber(nsqAddr), esdb.GlobalDatabaseHub.ProcessUpdateHandler)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
@@ -48,7 +48,7 @@ func main() {
 	GlobalBridge.Subscribe(entityType)
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	db.GlobalDatabaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
+	esdb.GlobalDatabaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
 		item := fetch(rowKey)
 		b, err := json.Marshal(item)
 		if err != nil {
@@ -58,7 +58,7 @@ func main() {
 		sender(b)
 	})
 
-	web.HandleEntity(mux, GlobalBridge.ClientBuilder)
+	esweb.HandleEntity(mux, GlobalBridge.ClientBuilder)
 
 	resolveName(GlobalBridge)
 
@@ -83,7 +83,7 @@ type ItemV1 struct {
 	ClosedDate time.Time
 }
 
-func resolveName(b *bridge.Bridge) {
+func resolveName(b *esbridge.Bridge) {
 	role := os.Getenv("role")
 	if role == "1" {
 		Name = fmt.Sprint("Reader", rand.Intn(100))
@@ -95,7 +95,7 @@ func resolveName(b *bridge.Bridge) {
 	}
 }
 
-func startMutator(b *bridge.Bridge) {
+func startMutator(b *esbridge.Bridge) {
 	go func() {
 		key := shared.EntityKey{
 			ID:     "100",

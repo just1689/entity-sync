@@ -1,4 +1,4 @@
-package dq
+package esnsq
 
 import (
 	"fmt"

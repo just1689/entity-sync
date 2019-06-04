@@ -1,4 +1,4 @@
-package db
+package esdb
 
 import "github.com/just1689/entity-sync/shared"
 

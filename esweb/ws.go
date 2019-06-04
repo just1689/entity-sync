@@ -1,4 +1,4 @@
-package web
+package esweb
 
 import (
 	"encoding/json"

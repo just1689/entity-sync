@@ -1,4 +1,4 @@
-package bridge
+package esbridge
 
 import (
 	"encoding/json"
