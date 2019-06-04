@@ -1,4 +1,4 @@
-package esnsq
+package esq
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHandler {
+func getNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHandler {
 	config := nsq.NewConfig()
 	w, _ := nsq.NewProducer(nsqAddr, config)
 	producer := func(msg []byte) {
@@ -20,7 +20,7 @@ func GetNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHan
 	return producer
 }
 
-func SubscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHandler) {
+func subscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHandler) {
 	config := nsq.NewConfig()
 	q, _ := nsq.NewConsumer(entityType.GetQueueName(), fmt.Sprint(uuid.NewV4().String(), "#ephemeral"), config)
 	q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
