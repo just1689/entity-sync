@@ -44,18 +44,15 @@ func (b *Bridge) SyncEntityType(entityType shared.EntityType) {
 	b.subscribe(entityType)
 }
 
-func (b *Bridge) createQueuePublishers(entity shared.EntityType) {
-	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
-}
-func (b *Bridge) subscribe(entityType shared.EntityType) {
-	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
-		key := shared.EntityKey{}
-		if err := json.Unmarshal(barr, &key); err != nil {
-			logrus.Errorln(err)
-			return
-		}
-		b.onQueueIncoming(key)
-	})
+func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
+	c := client{
+		ToWS:          ToWS,
+		RemoteDC:      make(chan bool),
+		Subscriptions: make(map[string]shared.EntityKey),
+	}
+	b.clients = append(b.clients, &c)
+	b.blockOnDisconnect(&c)
+	return c.Subscribe, c.UnSubscribe, c.RemoteDC
 }
 
 //NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
@@ -70,6 +67,20 @@ func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 	}
 	pub(barr)
 
+}
+
+func (b *Bridge) createQueuePublishers(entity shared.EntityType) {
+	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
+}
+func (b *Bridge) subscribe(entityType shared.EntityType) {
+	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
+		key := shared.EntityKey{}
+		if err := json.Unmarshal(barr, &key); err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		b.onQueueIncoming(key)
+	})
 }
 
 func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
@@ -90,15 +101,4 @@ func (b *Bridge) blockOnDisconnect(c *client) {
 		removeClient(b, c)
 		b.m.Unlock()
 	}()
-}
-
-func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
-	c := client{
-		ToWS:          ToWS,
-		RemoteDC:      make(chan bool),
-		Subscriptions: make(map[string]shared.EntityKey),
-	}
-	b.clients = append(b.clients, &c)
-	b.blockOnDisconnect(&c)
-	return c.Subscribe, c.UnSubscribe, c.RemoteDC
 }
