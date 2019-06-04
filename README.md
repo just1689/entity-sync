@@ -1,5 +1,12 @@
 # Entity Sync
 
+
+
+Push entities to websocket clients onchange to keep clients in sync.
+
+
+
+
 ## Example
 
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
