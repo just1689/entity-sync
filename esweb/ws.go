@@ -37,8 +37,8 @@ func (h *Hub) Run() {
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
-				client.queueDCNotify <- true
-				close(client.queueDCNotify)
+				client.bridgeProxy.queueDCNotify <- true
+				close(client.bridgeProxy.queueDCNotify)
 			}
 		}
 	}
@@ -62,9 +62,13 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub               *Hub
-	conn              *websocket.Conn
-	send              chan []byte
+	hub         *Hub
+	conn        *websocket.Conn
+	send        chan []byte
+	bridgeProxy bridgeProxy
+}
+
+type bridgeProxy struct {
 	entityKeyHandlers map[shared.Action]shared.EntityKeyHandler
 	queueDCNotify     chan bool
 }
@@ -76,7 +80,7 @@ func (c *Client) handleReadMsg(message []byte) {
 		logrus.Errorln(err)
 		return
 	}
-	if f, found := c.entityKeyHandlers[m.Action]; found {
+	if f, found := c.bridgeProxy.entityKeyHandlers[m.Action]; found {
 		f(m.EntityKey)
 	} else {
 		logrus.Errorln("Unknown action", m.Action)
@@ -154,16 +158,18 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:               hub,
-		conn:              conn,
-		send:              make(chan []byte, 256),
-		entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
+		hub:  hub,
+		conn: conn,
+		send: make(chan []byte, 256),
+		bridgeProxy: bridgeProxy{
+			entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
+		},
 	}
 	client.hub.register <- client
 
-	client.entityKeyHandlers[shared.ActionSubscribe],
-		client.entityKeyHandlers[shared.ActionUnSubscribe],
-		client.queueDCNotify = hub.bridgeClientBuilder(func(barr []byte) {
+	client.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
+		client.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
+		client.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(func(barr []byte) {
 		client.send <- barr
 	})
 
