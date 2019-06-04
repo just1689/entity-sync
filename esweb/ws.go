@@ -10,23 +10,32 @@ import (
 	"time"
 )
 
-type Hub struct {
-	clients             map[*Client]bool
-	register            chan *Client
-	unregister          chan *Client
+func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+	itemHub := newHub(bridgeClientBuilder)
+	go itemHub.run()
+	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(itemHub, w, r)
+	})
+
+}
+
+type hub struct {
+	clients             map[*client]bool
+	register            chan *client
+	unregister          chan *client
 	bridgeClientBuilder shared.ByteHandlingRemoteProxy
 }
 
-func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *Hub {
-	return &Hub{
-		register:            make(chan *Client),
-		unregister:          make(chan *Client),
-		clients:             make(map[*Client]bool),
+func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *hub {
+	return &hub{
+		register:            make(chan *client),
+		unregister:          make(chan *client),
+		clients:             make(map[*client]bool),
 		bridgeClientBuilder: bridgeClientBuilder,
 	}
 }
 
-func (h *Hub) run() {
+func (h *hub) run() {
 	for {
 		select {
 		case c := <-h.register:
@@ -58,9 +67,9 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-// Client is a middleman between the websocket connection and the hub.
-type Client struct {
-	hub         *Hub
+// client is a middleman between the websocket connection and the hub.
+type client struct {
+	hub         *hub
 	conn        *websocket.Conn
 	send        chan []byte
 	bridgeProxy bridgeProxy
@@ -71,7 +80,7 @@ type bridgeProxy struct {
 	queueDCNotify     chan bool
 }
 
-func (c *Client) handleReadMsg(message []byte) {
+func (c *client) handleReadMsg(message []byte) {
 	m := shared.MessageAction{}
 	err := json.Unmarshal(message, &m)
 	if err != nil {
@@ -90,7 +99,7 @@ func (c *Client) handleReadMsg(message []byte) {
 // The application runs readPump in a per-connection goroutine. The application
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
-func (c *Client) readPump() {
+func (c *client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -101,7 +110,7 @@ func (c *Client) readPump() {
 	readPumpToClient(c)
 }
 
-func readPumpToClient(c *Client) {
+func readPumpToClient(c *client) {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -119,7 +128,7 @@ func readPumpToClient(c *Client) {
 // A goroutine running writePump is started for each connection. The
 // application ensures that there is at most one writer to a connection by
 // executing all writes from this goroutine.
-func (c *Client) writePump() {
+func (c *client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -128,7 +137,7 @@ func (c *Client) writePump() {
 	writePumpToClient(c, ticker)
 }
 
-func writePumpToClient(c *Client, ticker *time.Ticker) {
+func writePumpToClient(c *client, ticker *time.Ticker) {
 	for {
 		var err error
 		select {
@@ -152,14 +161,14 @@ func writePumpToClient(c *Client, ticker *time.Ticker) {
 }
 
 // serveWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	c := &Client{
+	c := &client{
 		hub:  hub,
 		conn: conn,
 		send: make(chan []byte, 256),
@@ -177,13 +186,4 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	go c.writePump()
 	go c.readPump()
-}
-
-func HandleEntity(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
-	itemHub := newHub(bridgeClientBuilder)
-	go itemHub.run()
-	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
-		ServeWs(itemHub, w, r)
-	})
-
 }
