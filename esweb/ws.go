@@ -19,13 +19,6 @@ func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingR
 
 }
 
-type hub struct {
-	clients             map[*client]bool
-	register            chan *client
-	unregister          chan *client
-	bridgeClientBuilder shared.ByteHandlingRemoteProxy
-}
-
 func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *hub {
 	return &hub{
 		register:            make(chan *client),
@@ -33,6 +26,13 @@ func newHub(bridgeClientBuilder shared.ByteHandlingRemoteProxy) *hub {
 		clients:             make(map[*client]bool),
 		bridgeClientBuilder: bridgeClientBuilder,
 	}
+}
+
+type hub struct {
+	clients             map[*client]bool
+	register            chan *client
+	unregister          chan *client
+	bridgeClientBuilder shared.ByteHandlingRemoteProxy
 }
 
 func (h *hub) run() {
@@ -80,17 +80,33 @@ type bridgeProxy struct {
 	queueDCNotify     chan bool
 }
 
-func (c *client) handleReadMsg(message []byte) {
-	m := shared.MessageAction{}
-	if err := json.Unmarshal(message, &m); err != nil {
-		logrus.Errorln(err)
+// serveWs handles websocket requests from the peer.
+func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
 		return
 	}
-	if f, found := c.bridgeProxy.entityKeyHandlers[m.Action]; found {
-		f(m.EntityKey)
-	} else {
-		logrus.Errorln("Unknown action", m.Action)
+
+	c := &client{
+		hub:  hub,
+		conn: conn,
+		send: make(chan []byte, 256),
+		bridgeProxy: bridgeProxy{
+			entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
+		},
 	}
+	c.hub.register <- c
+
+	c.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
+		c.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
+		c.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(
+		func(barr []byte) {
+			c.send <- barr
+		})
+
+	go c.writePump()
+	go c.readPump()
 }
 
 func (c *client) readPump() {
@@ -114,6 +130,19 @@ func readPumpToClient(c *client) {
 			break
 		}
 		c.handleReadMsg(message)
+	}
+}
+
+func (c *client) handleReadMsg(message []byte) {
+	m := shared.MessageAction{}
+	if err := json.Unmarshal(message, &m); err != nil {
+		logrus.Errorln(err)
+		return
+	}
+	if f, found := c.bridgeProxy.entityKeyHandlers[m.Action]; found {
+		f(m.EntityKey)
+	} else {
+		logrus.Errorln("Unknown action", m.Action)
 	}
 }
 
@@ -147,33 +176,4 @@ func writePumpToClient(c *client, ticker *time.Ticker) {
 			}
 		}
 	}
-}
-
-// serveWs handles websocket requests from the peer.
-func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	c := &client{
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
-		bridgeProxy: bridgeProxy{
-			entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
-		},
-	}
-	c.hub.register <- c
-
-	c.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
-		c.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
-		c.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(
-		func(barr []byte) {
-			c.send <- barr
-		})
-
-	go c.writePump()
-	go c.readPump()
 }
