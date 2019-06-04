@@ -6,6 +6,7 @@ type ByteHandler func([]byte)
 type EntityByteHandler func(entity EntityType, handler ByteHandler)
 type EntityHandler func(entity EntityType) ByteHandler
 type EntityKeyHandler func(entityKey EntityKey)
+type EntityKeyByteHandler func(entityKey EntityKey, handler ByteHandler)
 
 type EntityType string
 

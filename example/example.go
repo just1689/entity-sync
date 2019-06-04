@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const nsqAddr = "127.0.0.1:4150"
+const nsqAddr = "192.168.88.26:30000"
 const entityType shared.EntityType = "items"
 
 var GlobalBridge *bridge.Bridge
@@ -37,7 +37,8 @@ func main() {
 	}
 
 	//Build the bridge
-	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr), dq.BuildSubscriber(nsqAddr))
+	// The bridge matches communication from ws to nsq and from nsq to ws. It also calls on the db to resolve entityKey
+	GlobalBridge = bridge.BuildBridge(dq.BuildPublisher(nsqAddr), dq.BuildSubscriber(nsqAddr), db.GlobalDatabaseHub.ProcessUpdateHandler)
 
 	//Create publisher for NSQ (Allows to call NotifyAllOfChange())
 	GlobalBridge.CreateQueuePublishers(entityType)
