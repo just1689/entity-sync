@@ -26,37 +26,38 @@ Push entities to websocket clients onchange to keep clients in sync.
 ### Server setup
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
+//A standard mux and http listener
 mux := http.NewServeMux()
-l, _ := net.Listen("tcp", *listenLocal)
+var l net.Listener
+if l, err = net.Listen("tcp", *listenLocal); err != nil {
 ...
+}
 
-//Create a database hub for handling fetching data for various EntityKeys
+//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
 var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
+databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
+    item := fetch(rowKey)
+    b, _ := json.Marshal(item)
+    pusher(b)
+})
 
 // The bridge matches communication from ws to nsq and from nsq to ws.
 // It also calls on the db to resolve entityKey
-var GlobalBridge *esbridge.Bridge = esbridge.BuildBridge(
-    esnsq.BuildPublisher(nsqAddr),
-    esnsq.BuildSubscriber(nsqAddr),
-    databaseHub.ProcessUpdateHandler,
+var bridge *esbridge.Bridge = esbridge.BuildBridge(
+    esq.BuildPublisher(*nsqAddr),
+    esq.BuildSubscriber(*nsqAddr),
+    databaseHub.PullDataAndPush,
 )
 
 //Create publisher for NSQ (Allows to call NotifyAllOfChange())
-GlobalBridge.CreateQueuePublishers(entityType)
+bridge.CreateQueuePublishers(entityType)
 
 //Ensure the bridge will send NSQ messages for entityType to onNotify
-GlobalBridge.Subscribe(entityType)
-
-//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-databaseHub.AddUpdateHandler(entityType, func(rowKey shared.EntityKey, sender shared.ByteHandler) {
-    item := ... //Implement however you get your data.
-    b, err := json.Marshal(item)
-    ...
-    sender(b)
-})
+bridge.Subscribe(entityType)
 
 //Pass the mux and a client builder to the libraries handlers
-esweb.HandleEntity(mux, GlobalBridge.ClientBuilder)
+esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
+
 
 http.Serve(l, mux)
 ```
