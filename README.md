@@ -1,9 +1,7 @@
 # Entity Sync
 
 <img src="https://goreportcard.com/badge/github.com/just1689/entity-sync">&nbsp;<a href="https://codebeat.co/projects/github-com-just1689-entity-sync-master"><img alt="codebeat badge" src="https://codebeat.co/badges/db75c6df-77e3-4f84-9464-ca1d2062566c" /></a>&nbsp;<a href="https://codeclimate.com/github/just1689/entity-sync/maintainability"><img src="https://api.codeclimate.com/v1/badges/4ccbe11fba6a8037fa76/maintainability" /></a>
-
 <br />
-
 Push entities to websocket clients onchange to keep clients in sync.
 
 <img src="docs/diagram-v2.svg">
@@ -18,11 +16,16 @@ Push entities to websocket clients onchange to keep clients in sync.
 - Multiple responses. You can send back several rows. This is great if updating the client means sending them rows from tables in foreign keys etc.
 - Database / repository agnostic. This library can take a function that you implement to use whichever database, driver, client or interface you choose to implement. 
 
+## Roadmap
+- Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user may request the KeyEntity they ask for.
+- Provide a method for incoming websocket requests that don't match any concern for this library.
+
+
 ## Example
 
+### Server setup
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
-
 //Create your own mux
 mux := http.NewServeMux()
 l, err := net.Listen("tcp", *listenLocal)
@@ -56,9 +59,9 @@ err = http.Serve(l, mux)
 if err != nil {
     panic(err)
 }
-
 ```
 
+### Connect clients
 Connect any number of clients:
 1. Connect to the server over websocket ws://host:port/ws/entity-sync/
 2. Send a subscription request
@@ -72,14 +75,11 @@ Connect any number of clients:
     }
 }
 ```
+### Mutate entity & notify
 
 On the server: make some change to the item in question, then call:
-`bridge.NotifyAllOfChange(key)` where key is a `KeyEntity`.
+`bridge.NotifyAllOfChange(entityKey)` where entityKey is a `KeyEntity`.
 
 All connected clients over websockets will receive messages for the EntityKey/s to which they are subscribed.
 
 
-# Roadmap
-
-1. Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user may request the KeyEntity they ask for.
-2. Provide a method for incoming websocket requests that don't match any concern for this library.
