@@ -60,3 +60,8 @@ On the server: make some change to the item in question, then call:
 
 All connected clients over websockets will receive messages for the EntityKey/s to which they are subscribed.
 
+
+# Roadmap
+
+1. Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user may request the KeyEntity they ask for.
+2. Provide a method for incoming websocket requests that don't match any concern for this library.
