@@ -58,7 +58,7 @@ func main() {
 		sender(b)
 	})
 
-	web.HandleEntity(mux, GlobalBridge)
+	web.HandleEntity(mux, GlobalBridge.ClientBuilder)
 
 	resolveName(GlobalBridge)
 
