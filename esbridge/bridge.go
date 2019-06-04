@@ -37,16 +37,6 @@ type QueueFunctions struct {
 	queueSubscriberBuilder shared.EntityByteHandler
 }
 
-func (b *Bridge) removeClient(c *Client) {
-	for i, client := range b.clients {
-		if client == c {
-			b.clients[i] = b.clients[len(b.clients)-1]
-			b.clients = b.clients[:len(b.clients)-1]
-			break
-		}
-	}
-}
-
 func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
 	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
 }
@@ -92,7 +82,7 @@ func (b *Bridge) blockOnDisconnect(c *Client) {
 	go func() {
 		<-c.RemoteDC
 		b.m.Lock()
-		b.removeClient(c)
+		removeClient(b, c)
 		b.m.Unlock()
 	}()
 }

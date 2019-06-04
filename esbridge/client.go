@@ -15,3 +15,13 @@ func (c *Client) Subscribe(key shared.EntityKey) {
 func (c *Client) UnSubscribe(key shared.EntityKey) {
 	delete(c.Subscriptions, key.Hash())
 }
+
+func removeClient(b *Bridge, c *Client) {
+	for i, client := range b.clients {
+		if client == c {
+			b.clients[i] = b.clients[len(b.clients)-1]
+			b.clients = b.clients[:len(b.clients)-1]
+			break
+		}
+	}
+}
