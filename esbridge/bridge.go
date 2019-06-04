@@ -49,7 +49,6 @@ func (b *Bridge) removeClient(c *Client) {
 
 func (b *Bridge) CreateQueuePublishers(entity shared.EntityType) {
 	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
-
 }
 
 //NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
@@ -107,18 +106,4 @@ func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHan
 	b.clients = append(b.clients, &client)
 	b.blockOnDisconnect(&client)
 	return client.Subscribe, client.UnSubscribe, client.RemoteDC
-}
-
-type Client struct {
-	Subscriptions map[string]shared.EntityKey
-	ToWS          shared.ByteHandler
-	RemoteDC      chan bool
-}
-
-func (c *Client) Subscribe(key shared.EntityKey) {
-	c.Subscriptions[key.Hash()] = key
-}
-
-func (c *Client) UnSubscribe(key shared.EntityKey) {
-	delete(c.Subscriptions, key.Hash())
 }
