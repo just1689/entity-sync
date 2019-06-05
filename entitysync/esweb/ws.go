@@ -2,7 +2,7 @@ package esweb
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/just1689/entity-sync/shared"
+	shared2 "github.com/just1689/entity-sync/entitysync/shared"
 	"log"
 	"net/http"
 	"time"
@@ -24,9 +24,9 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared2.ByteHandlingRemoteProxy) {
 	itemHub := newHub(bridgeClientBuilder)
-	go itemHub.run()
+	go run()
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(itemHub, w, r)
 	})
@@ -46,18 +46,18 @@ func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
 		conn: conn,
 		send: make(chan []byte, 256),
 		bridgeProxy: bridgeProxy{
-			entityKeyHandlers: make(map[shared.Action]shared.EntityKeyHandler),
+			entityKeyHandlers: make(map[shared2.Action]shared2.EntityKeyHandler),
 		},
 	}
-	c.hub.register <- c
+	register <- c
 
-	c.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
-		c.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
-		c.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(
+	entityKeyHandlers[shared2.ActionSubscribe],
+		entityKeyHandlers[shared2.ActionUnSubscribe],
+		queueDCNotify = bridgeClientBuilder(
 		func(barr []byte) {
-			c.send <- barr
+			send <- barr
 		})
 
-	go c.writePump()
-	go c.readPump()
+	go writePump()
+	go readPump()
 }

@@ -1,11 +1,11 @@
-package eswizard
+package entitysync
 
 import (
-	"github.com/just1689/entity-sync/esbridge"
-	"github.com/just1689/entity-sync/esdb"
-	"github.com/just1689/entity-sync/esq"
-	"github.com/just1689/entity-sync/esweb"
-	"github.com/just1689/entity-sync/shared"
+	"github.com/just1689/entity-sync/entitysync/esbridge"
+	"github.com/just1689/entity-sync/entitysync/esdb"
+	"github.com/just1689/entity-sync/entitysync/esq"
+	"github.com/just1689/entity-sync/entitysync/esweb"
+	"github.com/just1689/entity-sync/entitysync/shared"
 	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"

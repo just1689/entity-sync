@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/just1689/entity-sync/eswizard"
-	"github.com/just1689/entity-sync/shared"
+	"github.com/just1689/entity-sync/entitysync"
+	"github.com/just1689/entity-sync/entitysync/shared"
 )
 
 func main() {
@@ -11,12 +11,12 @@ func main() {
 	setup()
 	done := make(chan bool)
 
-	config := eswizard.Config{
+	config := entitysync.Config{
 		ListenAddr: *listenLocal,
 		NSQAddr:    *nsqAddr,
 	}
-	entitySync := eswizard.Setup(config)
-	eswizard.HandleEntity(entitySync, entityType, func(entityKey shared.EntityKey, handler shared.ByteHandler) {
+	entitySync := entitysync.Setup(config)
+	entitysync.HandleEntity(entitySync, entityType, func(entityKey shared.EntityKey, handler shared.ByteHandler) {
 		item := fetch(entityKey)
 		b, _ := json.Marshal(item)
 		handler(b)
