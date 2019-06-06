@@ -92,11 +92,11 @@ es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret 
     handler(b)
         
     user := controller.GetUserByID(item.CreatedBy)
-    b, _ := json.Marshal(user)
+    b, _ = json.Marshal(user)
     handler(b)
 
     department := controller.GetDeparmentByID(item.departmentID)
-    b, _ := json.Marshal(department)
+    b, _ = json.Marshal(department)
     handler(b)
     
 })
