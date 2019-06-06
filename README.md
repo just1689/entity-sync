@@ -79,4 +79,43 @@ All connected clients over websockets will receive messages for the EntityKey/s 
 }
 ```
 
+## Architecture
 <img src="docs/diagram-v2.svg">
+
+## Other examples
+
+### Sending multiple rows to the client
+```go
+es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+	item := controller.GetReportByID(entityKey.ID)
+    b, _ := json.Marshal(item)
+    handler(b)
+        
+    user := controller.GetUserByID(item.CreatedBy)
+    b, _ := json.Marshal(user)
+    handler(b)
+
+    department := controller.GetDeparmentByID(item.departmentID)
+    b, _ := json.Marshal(department)
+    handler(b)
+    
+})
+```
+
+### Checking if a user is allowed to receive the push notification
+```go
+es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+	session, err := contoller.GetSessionBySecret(secret)
+	if err != nil {
+		logrus.Errorln(err)
+		return
+	}
+	
+	item := controller.GetReportByID(entityKey.ID)
+    b, _ := json.Marshal(item)
+    handler(b)
+    
+})
+```
+
+
