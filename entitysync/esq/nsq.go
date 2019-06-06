@@ -12,8 +12,7 @@ func getNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHan
 	config := nsq.NewConfig()
 	w, _ := nsq.NewProducer(nsqAddr, config)
 	producer := func(msg []byte) {
-		err := w.Publish(entityType.GetQueueName(), msg)
-		if err != nil {
+		if err := w.Publish(entityType.GetQueueName(), msg); err != nil {
 			logrus.Panic("Could not publish to NSQ ", nsqAddr, "on topic", entityType)
 		}
 	}
@@ -27,8 +26,7 @@ func subscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHan
 		f(message.Body)
 		return nil
 	}))
-	err := q.ConnectToNSQD(nsqAddr)
-	if err != nil {
+	if err := q.ConnectToNSQD(nsqAddr); err != nil {
 		logrus.Panic("Could not connect to NSQ for subscribe", nsqAddr)
 	}
 
