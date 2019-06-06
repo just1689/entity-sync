@@ -115,4 +115,48 @@ es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret 
 })
 ```
 
+### Provide your own queue
+```go
+
+var queueAddr = "localhost:4000"
+
+func setup() {
+    mux := http.NewServeMux()
+    databaseHub := esdb.NewDatabaseHub()
+    
+    // The bridge matches communication from ws to nsq and from nsq to ws.
+    // It also calls on the db to resolve entityKey
+    bridge := esbridge.BuildBridge(
+        BuildPublisher(queueAddr),
+        BuildSubscriber(queueAddr),
+        databaseHub.PullDataAndPush,
+    )
+    
+    //Pass the mux and a client builder to the libraries handlers
+    esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
+    
+    ...
+}
+
+var BuildPublisher shared.AddressableEntityHandler = func(addr string) shared.EntityHandler {
+	return func(entityType shared.EntityType) shared.ByteHandler {
+		return func(b []byte) {
+			...
+			qPublisher.publish(entityType.GetQueueName(), b)
+		}
+	}
+}
+
+var BuildSubscriber shared.AddressableEntityByteHandler = func(addr string) shared.EntityByteHandler {
+	return func(entityType shared.EntityType, callback shared.ByteHandler) {
+		func subscribeNSQ(qAddr string, entityType shared.EntityType, f shared.ByteHandler) {
+		}(qArr, entityType, f func(b []byte {
+			...
+			natsHandler(in []byte) {
+				f(in)
+			}
+		}))
+	}
+}
+```
 
