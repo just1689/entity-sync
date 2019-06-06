@@ -16,6 +16,7 @@ Push entities to websocket clients onchange to keep clients in sync.
 - Multiple responses. You can send back several rows. This is great if updating the client means sending them rows from tables in foreign keys etc.
 - Database / repository agnostic. This library can take a function that you implement to use whichever database, driver, client or interface you choose to implement. 
 - A helper package for a simple one call setup (see entitysync/entitysync.go)
+- Queue agnostic. Comes with working NSQ integration but you can choose to provide anything you can wrap in `shared.EntityHandler` and `shared.EntityByteHandler`.
 
 ## Roadmap
 - Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user may request the KeyEntity they ask for.
