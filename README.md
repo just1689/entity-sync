@@ -4,9 +4,6 @@
 <br />
 Push entities to websocket clients onchange to keep clients in sync.
 
-<img src="docs/diagram-v2.svg">
-
-
 ## Features
 
 - Stateless server. Servers do not need to know about each other or which clients are connected to other servers. This allows the server to scale without synchronizing them.
@@ -81,3 +78,5 @@ All connected clients over websockets will receive messages for the EntityKey/s 
     "body": "my-super-secret-secret-123"
 }
 ```
+
+<img src="docs/diagram-v2.svg">
