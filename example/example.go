@@ -47,10 +47,11 @@ func main() {
 	//Start a listener and provide the mux for routes / handling
 	logrus.Println("Starting serve on ", *listenLocal)
 	var l net.Listener
-	if l, err := net.Listen("tcp", *listenLocal); err != nil {
+	var err error
+	if l, err = net.Listen("tcp", *listenLocal); err != nil {
 		logrus.Fatalln(err)
 	}
-	if err := http.Serve(l, config.Mux); err != nil {
+	if err = http.Serve(l, config.Mux); err != nil {
 		panic(err)
 	}
 
