@@ -117,6 +117,7 @@ es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret 
 ```
 
 ### Provide your own queue
+EntitySync is built using NSQ. In theory you can use whatever you like. You will need to provide two functions to the library. The one will allow it to produce a publisher and return a method that will be called to publish. The other is a subscriber and  is provided a method for sending.
 ```go
 
 var queueAddr = "localhost:4000"
