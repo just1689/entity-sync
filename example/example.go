@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"github.com/just1689/entity-sync/entitysync"
 	"github.com/just1689/entity-sync/entitysync/esbridge"
-	"github.com/just1689/entity-sync/entitysync/esdb"
-	"github.com/just1689/entity-sync/entitysync/esq"
-	"github.com/just1689/entity-sync/entitysync/esweb"
 	"github.com/just1689/entity-sync/entitysync/shared"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -29,41 +27,33 @@ func main() {
 	setup()
 	var err error
 
-	//A standard mux and http listener
-	mux := http.NewServeMux()
+	// Provide a configuration
+	config := entitysync.Config{
+		Mux:     http.NewServeMux(),
+		NSQAddr: *nsqAddr,
+	}
+	//Setup entitySync with that configuration
+	es := entitysync.Setup(config)
 
-	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	databaseHub := esdb.NewDatabaseHub()
-	databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
+	//Register an entity and tell the library how to fetch and what to write to the client
+	es.RegisterEntityAndDBHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
 		item := fetch(rowKey)
 		b, _ := json.Marshal(item)
 		pusher(b)
 	})
 
-	// The bridge matches communication from ws to nsq and from nsq to ws.
-	// It also calls on the db to resolve entityKey
-	bridge := esbridge.BuildBridge(
-		esq.BuildPublisher(*nsqAddr),
-		esq.BuildSubscriber(*nsqAddr),
-		databaseHub.PullDataAndPush,
-	)
-
-	//Sync entity will ensure that you can PUB and SUB for this entity type
-	bridge.RegisterEntityForSync(entityType)
-
-	//Pass the mux and a client builder to the libraries handlers
-	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
-
+	//Simulate data changes
 	if *role == "2" {
-		startMutator(bridge)
+		startMutator(es.Bridge)
 	}
 
+	//Start a listener and provide the mux for routes / handling
 	logrus.Println("Starting serve on ", *listenLocal)
 	var l net.Listener
 	if l, err = net.Listen("tcp", *listenLocal); err != nil {
 		logrus.Fatalln(err)
 	}
-	if err = http.Serve(l, mux); err != nil {
+	if err = http.Serve(l, config.Mux); err != nil {
 		panic(err)
 	}
 

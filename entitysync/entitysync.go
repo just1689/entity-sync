@@ -39,7 +39,7 @@ func Setup(config Config) EntitySync {
 	return result
 }
 
-func RegisterEntityAndDBHandler(es EntitySync, entityType shared.EntityType, databaseFetchAndPush shared.EntityKeyByteHandler) {
+func (es *EntitySync) RegisterEntityAndDBHandler(entityType shared.EntityType, databaseFetchAndPush shared.EntityKeyByteHandler) {
 	es.DatabaseHub.AddDataPullAndPushHandler(entityType, databaseFetchAndPush)
 	es.Bridge.RegisterEntityForSync(entityType)
 }
