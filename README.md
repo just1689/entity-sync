@@ -103,13 +103,13 @@ es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret 
 ### Checking if a user is allowed to receive the push notification
 ```go
 es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
-	session, err := contoller.GetSessionBySecret(secret)
-	if err != nil {
-		logrus.Errorln(err)
-		return
-	}
+    session, err := contoller.GetSessionBySecret(secret)
+    if err != nil {
+        logrus.Errorln(err)
+        return
+    }
 	
-	item := controller.GetReportByID(entityKey.ID)
+    item := controller.GetReportByID(entityKey.ID)
     b, _ := json.Marshal(item)
     handler(b)
     
