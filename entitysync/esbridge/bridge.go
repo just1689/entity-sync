@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbPullDataAndPush shared.EntityKeyByteHandler) *Bridge {
+func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbPullDataAndPush shared.EntityKeySecretByteHandler) *Bridge {
 	return &Bridge{
 		queueFunctions: queueFunctions{
 			queuePublisherBuilder:  queuePublisherBuilder,
@@ -29,7 +29,7 @@ type Bridge struct {
 	clients []*client
 
 	//Database function
-	dbPullDataAndPush shared.EntityKeyByteHandler
+	dbPullDataAndPush shared.EntityKeySecretByteHandler
 }
 
 type queueFunctions struct {
@@ -90,7 +90,8 @@ func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		b.dbPullDataAndPush(key, c.ToWS)
+		// TODO: Get the secret into the BRIDGE
+		b.dbPullDataAndPush(key, "SECRET", c.ToWS)
 	}
 }
 

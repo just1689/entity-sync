@@ -10,7 +10,7 @@ type ByteHandler func([]byte)
 type EntityHandler func(entity EntityType) ByteHandler
 type EntityKeyHandler func(entityKey EntityKey)
 type EntityByteHandler func(entity EntityType, handler ByteHandler)
-type EntityKeyByteHandler func(entityKey EntityKey, handler ByteHandler)
+type EntityKeySecretByteHandler func(entityKey EntityKey, secret string, handler ByteHandler)
 type ByteHandlingRemoteProxy func(ByteHandler) (sub EntityKeyHandler, unSub EntityKeyHandler, dc chan bool)
 type AddressableEntityHandler func(addr string) EntityHandler
 type AddressableEntityByteHandler func(addr string) EntityByteHandler
