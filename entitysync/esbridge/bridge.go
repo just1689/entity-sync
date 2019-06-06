@@ -91,7 +91,7 @@ func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 			continue
 		}
 		// TODO: Get the secret into the BRIDGE
-		b.dbPullDataAndPush(key, "SECRET", c.ToWS)
+		b.dbPullDataAndPush(key, c.Secret, c.ToWS)
 	}
 }
 
