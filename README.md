@@ -141,6 +141,7 @@ func setup() {
 var BuildPublisher shared.AddressableEntityHandler = func(addr string) shared.EntityHandler {
 	return func(entityType shared.EntityType) shared.ByteHandler {
 		return func(b []byte) {
+			//TODO: setup the publisher client
 			...
 			qPublisher.publish(entityType.GetQueueName(), b)
 		}
@@ -151,6 +152,7 @@ var BuildSubscriber shared.AddressableEntityByteHandler = func(addr string) shar
 	return func(entityType shared.EntityType, callback shared.ByteHandler) {
 		func subscribeNSQ(qAddr string, entityType shared.EntityType, f shared.ByteHandler) {
 		}(qArr, entityType, f func(b []byte {
+			//TODO: connect to the nats client
 			...
 			natsHandler(in []byte) {
 				f(in)
