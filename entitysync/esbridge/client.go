@@ -6,6 +6,7 @@ type client struct {
 	Subscriptions map[string]shared.EntityKey
 	ToWS          shared.ByteHandler
 	RemoteDC      chan bool
+	Secret        string
 }
 
 func (c *client) Subscribe(key shared.EntityKey) {

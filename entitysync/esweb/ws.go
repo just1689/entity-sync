@@ -53,10 +53,11 @@ func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
 
 	c.bridgeProxy.entityKeyHandlers[shared.ActionSubscribe],
 		c.bridgeProxy.entityKeyHandlers[shared.ActionUnSubscribe],
-		c.bridgeProxy.queueDCNotify = hub.bridgeClientBuilder(
-		func(barr []byte) {
-			c.send <- barr
-		})
+		c.bridgeProxy.queueDCNotify =
+		hub.bridgeClientBuilder(
+			func(barr []byte) {
+				c.send <- barr
+			})
 
 	go c.writePump()
 	go c.readPump()
