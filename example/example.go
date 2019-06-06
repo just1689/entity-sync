@@ -49,7 +49,7 @@ func main() {
 	var l net.Listener
 	var err error
 	if l, err = net.Listen("tcp", *listenLocal); err != nil {
-		logrus.Fatalln(err)
+		panic(err)
 	}
 	if err = http.Serve(l, config.Mux); err != nil {
 		panic(err)

@@ -43,10 +43,12 @@ es.RegisterEntityAndDBHandler(entityType, func(rowKey shared.EntityKey, pusher s
 })
 
 //Start a listener and provide the mux for routes / handling
-logrus.Println("Starting serve on ", *listenLocal)
-var l net.Listener
-var err error
-net.Listen("tcp", *listenLocal)
+if l, err = net.Listen("tcp", *listenLocal); err != nil {
+    panic(err)
+}
+if err = http.Serve(l, config.Mux); err != nil {
+    panic(err)
+}
 ```
 
 ### Connect clients
