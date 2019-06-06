@@ -38,11 +38,17 @@ func main() {
 
 	//subscribe to entity for a particular ID
 	var b []byte
-	if b, err = json.Marshal(shared.MessageAction{
-		Action:    shared.ActionSubscribe,
-		EntityKey: shared.EntityKey{Entity: "items", ID: "100"},
-	}); err != nil {
-		logrus.Fatal(err)
+
+	msg := shared.Message{
+		Action: shared.ActionSubscribe,
+	}
+	msg.Body, err = json.Marshal(shared.EntityKey{Entity: "items", ID: "100"})
+	if err != nil {
+		logrus.Fatalln(err)
+	}
+	b, err = json.Marshal(msg)
+	if err != nil {
+		logrus.Fatalln(err)
 	}
 	logrus.Println("Sending", string(b))
 	if err = c.WriteMessage(websocket.TextMessage, b); err != nil {
