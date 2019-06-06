@@ -20,25 +20,23 @@ type EntitySync struct {
 }
 
 func Setup(config Config) EntitySync {
-
-	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-	databaseHub := esdb.NewDatabaseHub()
+	result := EntitySync{
+		//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
+		DatabaseHub: esdb.NewDatabaseHub(),
+	}
 
 	// The bridge matches communication from ws to nsq and from nsq to ws.
 	// It also calls on the db to resolve entityKey
-	bridge := esbridge.BuildBridge(
+	result.Bridge = esbridge.BuildBridge(
 		esq.BuildPublisher(config.NSQAddr),
 		esq.BuildSubscriber(config.NSQAddr),
-		databaseHub.PullDataAndPush,
+		result.DatabaseHub.PullDataAndPush,
 	)
 
 	//Pass the mux and a client builder to the libraries handlers
-	esweb.SetupMuxBridge(config.Mux, bridge.ClientBuilder)
+	esweb.SetupMuxBridge(config.Mux, result.Bridge.ClientBuilder)
 
-	return EntitySync{
-		Bridge:      bridge,
-		DatabaseHub: databaseHub,
-	}
+	return result
 }
 
 func HandleEntity(es EntitySync, entityType shared.EntityType, databaseFetchAndPush shared.EntityKeyByteHandler) {
