@@ -85,7 +85,7 @@ All connected clients over websockets will receive messages for the EntityKey/s 
 ### Sending multiple rows to the client
 ```go
 es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
-	item := controller.GetReportByID(entityKey.ID)
+    item := controller.GetReportByID(entityKey.ID)
     b, _ := json.Marshal(item)
     handler(b)
         
