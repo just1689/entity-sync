@@ -25,7 +25,6 @@ var nsqAddr = flag.String("nsqd", "192.168.88.26:30000", "nsqd address")
 func main() {
 	//Nonsense
 	setup()
-	var err error
 
 	// Provide a configuration
 	config := entitysync.Config{
@@ -43,17 +42,15 @@ func main() {
 	})
 
 	//Simulate data changes
-	if *role == "2" {
-		startMutator(es.Bridge)
-	}
+	startMutator(es.Bridge)
 
 	//Start a listener and provide the mux for routes / handling
 	logrus.Println("Starting serve on ", *listenLocal)
 	var l net.Listener
-	if l, err = net.Listen("tcp", *listenLocal); err != nil {
+	if l, err := net.Listen("tcp", *listenLocal); err != nil {
 		logrus.Fatalln(err)
 	}
-	if err = http.Serve(l, config.Mux); err != nil {
+	if err := http.Serve(l, config.Mux); err != nil {
 		panic(err)
 	}
 
@@ -86,21 +83,24 @@ type ItemV1 struct {
 
 //This simulates the data changing at an interval. This could be replaced with your API etc.
 func startMutator(b *esbridge.Bridge) {
-	go func() {
-		key := shared.EntityKey{
-			ID:     entityID,
-			Entity: entityType,
-		}
-		for {
-			exampleMutex.Lock()
-			exampleItem.ClosedDate = time.Now()
-			exampleMutex.Unlock()
-			logrus.Println("Mutated", key.ID)
-			logrus.Println("NotifyAllOfChange(", key.Hash(), ")")
-			b.NotifyAllOfChange(key)
-			time.Sleep(1000 * time.Millisecond)
-		}
-	}()
+	if *role == "2" {
+		go func() {
+			key := shared.EntityKey{
+				ID:     entityID,
+				Entity: entityType,
+			}
+			for {
+				exampleMutex.Lock()
+				exampleItem.ClosedDate = time.Now()
+				exampleMutex.Unlock()
+				logrus.Println("Mutated", key.ID)
+				logrus.Println("NotifyAllOfChange(", key.Hash(), ")")
+				b.NotifyAllOfChange(key)
+				time.Sleep(1000 * time.Millisecond)
+			}
+		}()
+	}
+
 }
 
 var exampleMutex sync.Mutex
