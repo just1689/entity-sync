@@ -37,10 +37,10 @@ config := entitysync.Config{
 es := entitysync.Setup(config)
 
 //Register an entity and tell the library how to fetch and what to write to the client
-es.RegisterEntityAndDBHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
-    item := fetch(rowKey)
+es.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+    item := fetch(entityKey)
     b, _ := json.Marshal(item)
-    pusher(b)
+    handler(b)
 })
 
 //Start a listener and provide the mux for routes / handling
