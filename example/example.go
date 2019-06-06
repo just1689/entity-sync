@@ -49,7 +49,7 @@ func main() {
 	)
 
 	//Sync entity will ensure that you can PUB and SUB for this entity type
-	bridge.SyncEntityType(entityType)
+	bridge.RegisterEntityForSync(entityType)
 
 	//Pass the mux and a client builder to the libraries handlers
 	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
