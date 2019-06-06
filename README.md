@@ -76,7 +76,7 @@ All connected clients over websockets will receive messages for the EntityKey/s 
 ```
 
 ## Architecture
-<img src="docs/diagram-v2.svg">
+<img width="128px" src="docs/diagram-v2.svg">
 
 ## Other examples
 
