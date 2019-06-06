@@ -15,6 +15,7 @@ type client struct {
 	conn        *websocket.Conn
 	send        chan []byte
 	bridgeProxy bridgeProxy
+	secret      string
 }
 
 type bridgeProxy struct {

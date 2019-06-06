@@ -44,11 +44,12 @@ func (b *Bridge) RegisterEntityForSync(entityType shared.EntityType) {
 	b.subscribe(entityType)
 }
 
-func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
+func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler, getSecret func() string) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
 	c := client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
 		Subscriptions: make(map[string]shared.EntityKey),
+		GetSecret:     getSecret,
 	}
 	b.clients = append(b.clients, &c)
 	b.blockOnDisconnect(&c)
@@ -90,8 +91,7 @@ func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		// TODO: Get the secret into the BRIDGE
-		b.dbPullDataAndPush(key, c.Secret, c.ToWS)
+		b.dbPullDataAndPush(key, c.GetSecret(), c.ToWS)
 	}
 }
 

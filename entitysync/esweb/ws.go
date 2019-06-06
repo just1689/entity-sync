@@ -24,7 +24,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared.ByteSecretHandlingRemoteProxy) {
 	itemHub := newHub(bridgeClientBuilder)
 	go itemHub.run()
 	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +57,8 @@ func serveWs(hub *hub, w http.ResponseWriter, r *http.Request) {
 		hub.bridgeClientBuilder(
 			func(barr []byte) {
 				c.send <- barr
+			}, func() string {
+				return c.secret
 			})
 
 	go c.writePump()
