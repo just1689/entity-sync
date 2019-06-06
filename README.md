@@ -21,7 +21,7 @@ Push entities to websocket clients onchange to keep clients in sync.
 
 ## Roadmap
 - Provide a method for incoming websocket requests that don't match any concern for this library to pass through.
-
+- Consider improving the security model
 
 ## Example
 
