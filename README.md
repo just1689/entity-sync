@@ -28,37 +28,26 @@ Push entities to websocket clients onchange to keep clients in sync.
 ### Server setup
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
-//A standard mux and http listener
-mux := http.NewServeMux()
+// Provide a configuration
+config := entitysync.Config{
+    Mux:     http.NewServeMux(),
+    NSQAddr: *nsqAddr,
+}
+//Setup entitySync with that configuration
+es := entitysync.Setup(config)
 
-//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
-var databaseHub *esdb.DatabaseHub = esdb.NewDatabaseHub()
-databaseHub.AddDataPullAndPushHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
+//Register an entity and tell the library how to fetch and what to write to the client
+es.RegisterEntityAndDBHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
     item := fetch(rowKey)
     b, _ := json.Marshal(item)
     pusher(b)
 })
 
-// The bridge matches communication from ws to nsq and from nsq to ws.
-// It also calls on the db to resolve entityKey
-var bridge *esbridge.Bridge = esbridge.BuildBridge(
-    esq.BuildPublisher(*nsqAddr),
-    esq.BuildSubscriber(*nsqAddr),
-    databaseHub.PullDataAndPush,
-)
-
-//Sync entity will ensure that you can PUB and SUB for this entity type
-bridge.SyncEntityType(entityType)
-
-//Pass the mux and a client builder to the libraries handlers
-esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
-
-
+//Start a listener and provide the mux for routes / handling
+logrus.Println("Starting serve on ", *listenLocal)
 var l net.Listener
-if l, err = net.Listen("tcp", *listenLocal); err != nil {
-...
-}
-http.Serve(l, mux)
+var err error
+net.Listen("tcp", *listenLocal)
 ```
 
 ### Connect clients
