@@ -2,17 +2,17 @@ package esbridge
 
 import (
 	"encoding/json"
-	shared2 "github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/entitysync/shared"
 	"github.com/sirupsen/logrus"
 	"sync"
 )
 
-func BuildBridge(queuePublisherBuilder shared2.EntityHandler, queueSubscriberBuilder shared2.EntityByteHandler, dbPullDataAndPush shared2.EntityKeyByteHandler) *Bridge {
+func BuildBridge(queuePublisherBuilder shared.EntityHandler, queueSubscriberBuilder shared.EntityByteHandler, dbPullDataAndPush shared.EntityKeyByteHandler) *Bridge {
 	return &Bridge{
 		queueFunctions: queueFunctions{
 			queuePublisherBuilder:  queuePublisherBuilder,
 			queueSubscriberBuilder: queueSubscriberBuilder,
-			queuePublishers:        make(map[shared2.EntityType]shared2.ByteHandler),
+			queuePublishers:        make(map[shared.EntityType]shared.ByteHandler),
 		},
 		clients:           make([]*client, 0),
 		dbPullDataAndPush: dbPullDataAndPush,
@@ -29,34 +29,34 @@ type Bridge struct {
 	clients []*client
 
 	//Database function
-	dbPullDataAndPush shared2.EntityKeyByteHandler
+	dbPullDataAndPush shared.EntityKeyByteHandler
 }
 
 type queueFunctions struct {
-	queuePublishers        map[shared2.EntityType]shared2.ByteHandler
-	queuePublisherBuilder  shared2.EntityHandler
-	queueSubscriberBuilder shared2.EntityByteHandler
+	queuePublishers        map[shared.EntityType]shared.ByteHandler
+	queuePublisherBuilder  shared.EntityHandler
+	queueSubscriberBuilder shared.EntityByteHandler
 }
 
 //SyncEntityType informs the framework that it needs to publish changes for this entity type and receive them
-func (b *Bridge) SyncEntityType(entityType shared2.EntityType) {
+func (b *Bridge) SyncEntityType(entityType shared.EntityType) {
 	b.createQueuePublishers(entityType)
 	b.subscribe(entityType)
 }
 
-func (b *Bridge) ClientBuilder(ToWS shared2.ByteHandler) (sub shared2.EntityKeyHandler, unSub shared2.EntityKeyHandler, dc chan bool) {
+func (b *Bridge) ClientBuilder(ToWS shared.ByteHandler) (sub shared.EntityKeyHandler, unSub shared.EntityKeyHandler, dc chan bool) {
 	c := client{
 		ToWS:          ToWS,
 		RemoteDC:      make(chan bool),
-		Subscriptions: make(map[string]shared2.EntityKey),
+		Subscriptions: make(map[string]shared.EntityKey),
 	}
 	b.clients = append(b.clients, &c)
 	b.blockOnDisconnect(&c)
-	return Subscribe, UnSubscribe, RemoteDC
+	return c.Subscribe, c.UnSubscribe, c.RemoteDC
 }
 
 //NotifyAll can be called to publish to all nodes (via NSQ) that a row of EntityType has changed
-func (b *Bridge) NotifyAllOfChange(key shared2.EntityKey) {
+func (b *Bridge) NotifyAllOfChange(key shared.EntityKey) {
 	pub, found := b.queueFunctions.queuePublishers[key.Entity]
 	if !found {
 		logrus.Fatalln("Could not notify all for entity", key.Entity)
@@ -69,12 +69,12 @@ func (b *Bridge) NotifyAllOfChange(key shared2.EntityKey) {
 
 }
 
-func (b *Bridge) createQueuePublishers(entity shared2.EntityType) {
+func (b *Bridge) createQueuePublishers(entity shared.EntityType) {
 	b.queueFunctions.queuePublishers[entity] = b.queueFunctions.queuePublisherBuilder(entity)
 }
-func (b *Bridge) subscribe(entityType shared2.EntityType) {
+func (b *Bridge) subscribe(entityType shared.EntityType) {
 	b.queueFunctions.queueSubscriberBuilder(entityType, func(barr []byte) {
-		key := shared2.EntityKey{}
+		key := shared.EntityKey{}
 		if err := json.Unmarshal(barr, &key); err != nil {
 			logrus.Errorln(err)
 			return
@@ -83,20 +83,20 @@ func (b *Bridge) subscribe(entityType shared2.EntityType) {
 	})
 }
 
-func (b *Bridge) onQueueIncoming(key shared2.EntityKey) {
+func (b *Bridge) onQueueIncoming(key shared.EntityKey) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	for _, c := range b.clients {
-		if _, found := Subscriptions[key.Hash()]; found == false {
+		if _, found := c.Subscriptions[key.Hash()]; found == false {
 			continue
 		}
-		b.dbPullDataAndPush(key, ToWS)
+		b.dbPullDataAndPush(key, c.ToWS)
 	}
 }
 
 func (b *Bridge) blockOnDisconnect(c *client) {
 	go func() {
-		<-RemoteDC
+		<-c.RemoteDC
 		b.m.Lock()
 		removeClient(b, c)
 		b.m.Unlock()

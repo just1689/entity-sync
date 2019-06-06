@@ -2,13 +2,13 @@ package esq
 
 import (
 	"fmt"
-	shared2 "github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/entitysync/shared"
 	"github.com/nsqio/go-nsq"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
-func getNSQProducer(nsqAddr string, entityType shared2.EntityType) shared2.ByteHandler {
+func getNSQProducer(nsqAddr string, entityType shared.EntityType) shared.ByteHandler {
 	config := nsq.NewConfig()
 	w, _ := nsq.NewProducer(nsqAddr, config)
 	producer := func(msg []byte) {
@@ -20,7 +20,7 @@ func getNSQProducer(nsqAddr string, entityType shared2.EntityType) shared2.ByteH
 	return producer
 }
 
-func subscribeNSQ(nsqAddr string, entityType shared2.EntityType, f shared2.ByteHandler) {
+func subscribeNSQ(nsqAddr string, entityType shared.EntityType, f shared.ByteHandler) {
 	config := nsq.NewConfig()
 	q, _ := nsq.NewConsumer(entityType.GetQueueName(), fmt.Sprint(uuid.NewV4().String(), "#ephemeral"), config)
 	q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {

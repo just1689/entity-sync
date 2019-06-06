@@ -6,14 +6,12 @@ import (
 	"github.com/just1689/entity-sync/entitysync/esq"
 	"github.com/just1689/entity-sync/entitysync/esweb"
 	"github.com/just1689/entity-sync/entitysync/shared"
-	"github.com/sirupsen/logrus"
-	"net"
 	"net/http"
 )
 
 type Config struct {
-	ListenAddr string
-	NSQAddr    string
+	NSQAddr string
+	Mux     *http.ServeMux
 }
 
 type EntitySync struct {
@@ -22,9 +20,6 @@ type EntitySync struct {
 }
 
 func Setup(config Config) EntitySync {
-	var err error
-	//A standard mux and http listener
-	mux := http.NewServeMux()
 
 	//Tell the databaseHub how to fetch an entity with (and any other rows related to) rowKey
 	databaseHub := esdb.NewDatabaseHub()
@@ -38,18 +33,7 @@ func Setup(config Config) EntitySync {
 	)
 
 	//Pass the mux and a client builder to the libraries handlers
-	esweb.SetupMuxBridge(mux, bridge.ClientBuilder)
-
-	logrus.Println("Starting serve on ", config.ListenAddr)
-	var l net.Listener
-	if l, err = net.Listen("tcp", config.ListenAddr); err != nil {
-		logrus.Fatalln(err)
-	}
-	go func() {
-		if err = http.Serve(l, mux); err != nil {
-			panic(err)
-		}
-	}()
+	esweb.SetupMuxBridge(config.Mux, bridge.ClientBuilder)
 
 	return EntitySync{
 		Bridge:      bridge,

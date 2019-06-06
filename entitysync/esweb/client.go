@@ -3,7 +3,7 @@ package esweb
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	shared2 "github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/entitysync/shared"
 	"github.com/sirupsen/logrus"
 	"log"
 	"time"
@@ -18,13 +18,13 @@ type client struct {
 }
 
 type bridgeProxy struct {
-	entityKeyHandlers map[shared2.Action]shared2.EntityKeyHandler
+	entityKeyHandlers map[shared.Action]shared.EntityKeyHandler
 	queueDCNotify     chan bool
 }
 
 func (c *client) readPump() {
 	defer func() {
-		unregister <- c
+		c.hub.unregister <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -47,7 +47,7 @@ func readPumpToClient(c *client) {
 }
 
 func (c *client) handleReadMsg(message []byte) {
-	m := shared2.MessageAction{}
+	m := shared.MessageAction{}
 	if err := json.Unmarshal(message, &m); err != nil {
 		logrus.Errorln(err)
 		return
