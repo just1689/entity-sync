@@ -15,6 +15,7 @@ type client struct {
 	conn        *websocket.Conn
 	send        chan []byte
 	bridgeProxy bridgeProxy
+	secret      string
 }
 
 type bridgeProxy struct {
@@ -47,13 +48,30 @@ func readPumpToClient(c *client) {
 }
 
 func (c *client) handleReadMsg(message []byte) {
-	m := shared.MessageAction{}
+	m := shared.Message{}
 	if err := json.Unmarshal(message, &m); err != nil {
 		logrus.Errorln(err)
 		return
 	}
+	if m.Action == shared.ActionSecret {
+		secret := ""
+		err := json.Unmarshal(m.Body, &secret)
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		c.secret = secret
+		return
+	}
+
 	if f, found := c.bridgeProxy.entityKeyHandlers[m.Action]; found {
-		f(m.EntityKey)
+		entityKey := shared.EntityKey{}
+		err := json.Unmarshal(m.Body, &entityKey)
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		f(entityKey)
 	} else {
 		logrus.Errorln("Unknown action", m.Action)
 	}

@@ -1,6 +1,9 @@
 package shared
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type EntityType string
 type ByteHandler func([]byte)
@@ -29,8 +32,9 @@ type Action string
 
 const ActionSubscribe Action = "subscribe"
 const ActionUnSubscribe Action = "unsubscribe"
+const ActionSecret Action = "secret"
 
-type MessageAction struct {
-	Action    Action    `json:"action"`
-	EntityKey EntityKey `json:"entityKey"`
+type Message struct {
+	Action Action          `json:"action"`
+	Body   json.RawMessage `json:"body"`
 }

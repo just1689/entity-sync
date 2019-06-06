@@ -60,7 +60,7 @@ Connect any number of clients:
 ```json
 {
     "action": "subscribe",
-    "entityKey": {
+    "body": {
         "id": "100",
         "entity": "items"
     }
