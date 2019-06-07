@@ -11,11 +11,12 @@ import (
 
 // client is a middleman between the websocket connection and the hub.
 type client struct {
-	hub         *hub
-	conn        *websocket.Conn
-	send        chan []byte
-	bridgeProxy bridgeProxy
-	secret      string
+	hub            *hub
+	conn           *websocket.Conn
+	send           chan []byte
+	bridgeProxy    bridgeProxy
+	secret         string
+	MsgPassThrough shared.SecretByteHandler
 }
 
 type bridgeProxy struct {
@@ -53,6 +54,12 @@ func (c *client) handleReadMsg(message []byte) {
 		logrus.Errorln(err)
 		return
 	}
+
+	if m.Action == "" {
+		c.MsgPassThrough(c.secret, message)
+		return
+	}
+
 	if m.Action == shared.ActionSecret {
 		secret := ""
 		err := json.Unmarshal(m.Body, &secret)

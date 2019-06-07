@@ -4,12 +4,13 @@ import (
 	"github.com/just1689/entity-sync/es/shared"
 )
 
-func newHub(bridgeClientBuilder shared.ByteSecretHandlingRemoteProxy) *hub {
+func newHub(bridgeClientBuilder shared.ByteSecretHandlingRemoteProxy, msgPassThrough shared.SecretByteHandler) *hub {
 	return &hub{
 		register:            make(chan *client),
 		unregister:          make(chan *client),
 		clients:             make(map[*client]bool),
 		bridgeClientBuilder: bridgeClientBuilder,
+		MsgPassThrough:      msgPassThrough,
 	}
 }
 
@@ -18,6 +19,7 @@ type hub struct {
 	register            chan *client
 	unregister          chan *client
 	bridgeClientBuilder shared.ByteSecretHandlingRemoteProxy
+	MsgPassThrough      shared.SecretByteHandler
 }
 
 func (h *hub) run() {

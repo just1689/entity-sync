@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	NSQAddr string
-	Mux     *mux.Router
+	NSQAddr       string
+	Mux           *mux.Router
+	WSPassThrough shared.SecretByteHandler
 }
 
 type EntitySync struct {
@@ -34,7 +35,7 @@ func Setup(config Config) EntitySync {
 	)
 
 	//Pass the mux and a client builder to the libraries handlers
-	esweb.SetupMuxBridge(config.Mux, result.Bridge.ClientBuilder)
+	esweb.SetupMuxBridge(config.Mux, result.Bridge.ClientBuilder, config.WSPassThrough)
 
 	return result
 }
