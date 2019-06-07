@@ -15,12 +15,13 @@ Push entities to websocket clients onchange to keep clients in sync.
 - A helper package for a simple one call setup (see entitysync/entitysync.go)
 - Queue agnostic. Comes with working NSQ integration but you can choose to provide anything you can wrap in `shared.EntityHandler` and `shared.EntityByteHandler`.
 - Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user is permitted to request the KeyEntity or filter the results they ask for.
+- Function for incoming websocket requests that don't match any concern for this library to pass through.
 
 ## Roadmap
 - Providing the websocket context.
 - Only one lookup per server on change.
 - Consider improving the security model.
-- Provide a method for incoming websocket requests that don't match any concern for this library to pass through.
+
 
 ## Example
 
@@ -162,3 +163,28 @@ var BuildSubscriber shared.AddressableEntityByteHandler = func(addr string) shar
 }
 ```
 
+### Pass through ws
+You can provide a method that will allow for pass-through handling of websocket messages.
+```go
+// Provide a configuration
+config := es.Config{
+    Mux:            mux.NewRouter(),
+    NSQAddr:        *nsqAddr,
+    WSPassThrough:  func(secret string, b []byte) {
+    	//TODO: handle incoming websocket message
+    } 
+}
+//Setup entitySync with that configuration
+entitySync := es.Setup(config)
+
+//Register an entity and tell the library how to fetch and what to write to the client
+entitySync.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+    item := fetch(entityKey)
+    b, _ := json.Marshal(item)
+    handler(b)
+})
+
+//Start a listener and provide the mux for routes / handling
+l, _ = net.Listen("tcp", *listenLocal)
+http.Serve(l, config.Mux)
+```
