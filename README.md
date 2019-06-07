@@ -29,7 +29,7 @@ Connect the server to EntitySync. Wire the your mux to the bridge and provide a 
 ```go
 // Provide a configuration
 config := entitysync.Config{
-    Mux:     http.NewServeMux(),
+    Mux:     mux.NewRouter(),
     NSQAddr: *nsqAddr,
 }
 //Setup entitySync with that configuration
