@@ -1,7 +1,7 @@
 # Distributed Entity Sync
 <img align="right" width="350" src="docs/diagram-v2.svg" />
 
-<img src="https://goreportcard.com/badge/github.com/just1689/entity-sync">&nbsp;<a href="https://codebeat.co/projects/github-com-just1689-entity-sync-master"><img alt="codebeat badge" src="https://codebeat.co/badges/db75c6df-77e3-4f84-9464-ca1d2062566c" /></a>&nbsp;<a href="https://codeclimate.com/github/just1689/entity-sync/maintainability"><img src="https://api.codeclimate.com/v1/badges/4ccbe11fba6a8037fa76/maintainability" /></a>&nbsp;![version](https://img.shields.io/badge/version-4.0.0-green.svg?cacheSeconds=2592000)
+<img src="https://goreportcard.com/badge/github.com/just1689/entity-sync">&nbsp;<a href="https://codebeat.co/projects/github-com-just1689-entity-sync-master"><img alt="codebeat badge" src="https://codebeat.co/badges/db75c6df-77e3-4f84-9464-ca1d2062566c" /></a>&nbsp;<a href="https://codeclimate.com/github/just1689/entity-sync/maintainability"><img src="https://api.codeclimate.com/v1/badges/4ccbe11fba6a8037fa76/maintainability" /></a>&nbsp;![version](https://img.shields.io/badge/version-5.1.0-green.svg?cacheSeconds=2592000)
 <br />
 Push entities to websocket clients onchange to keep clients in sync.
 
