@@ -28,12 +28,12 @@ Push entities to websocket clients onchange to keep clients in sync.
 Connect the server to EntitySync. Wire the your mux to the bridge and provide a method that can resolve an `EntityKey`.
 ```go
 // Provide a configuration
-config := entitysync.Config{
+config := es.Config{
     Mux:     mux.NewRouter(),
     NSQAddr: *nsqAddr,
 }
 //Setup entitySync with that configuration
-es := entitysync.Setup(config)
+es := es.Setup(config)
 
 //Register an entity and tell the library how to fetch and what to write to the client
 es.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {

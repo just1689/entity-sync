@@ -1,7 +1,7 @@
 package esweb
 
 import (
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 )
 
 func newHub(bridgeClientBuilder shared.ByteSecretHandlingRemoteProxy) *hub {

@@ -1,7 +1,7 @@
 package esdb
 
 import (
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 )
 
 func NewDatabaseHub() *DatabaseHub {

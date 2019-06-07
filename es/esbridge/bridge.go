@@ -2,7 +2,7 @@ package esbridge
 
 import (
 	"encoding/json"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 	"github.com/sirupsen/logrus"
 	"sync"
 )

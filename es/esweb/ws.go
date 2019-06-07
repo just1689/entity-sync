@@ -3,7 +3,7 @@ package esweb
 import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 	"log"
 	"net/http"
 	"time"

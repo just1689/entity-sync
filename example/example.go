@@ -5,9 +5,9 @@ import (
 	"errors"
 	"flag"
 	"github.com/gorilla/mux"
-	"github.com/just1689/entity-sync/entitysync"
-	"github.com/just1689/entity-sync/entitysync/esbridge"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es"
+	"github.com/just1689/entity-sync/es/esbridge"
+	"github.com/just1689/entity-sync/es/shared"
 	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
@@ -28,12 +28,12 @@ func main() {
 	setup()
 
 	// Provide a configuration
-	config := entitysync.Config{
+	config := es.Config{
 		Mux:     mux.NewRouter(),
 		NSQAddr: *nsqAddr,
 	}
 	//Setup entitySync with that configuration
-	es := entitysync.Setup(config)
+	es := es.Setup(config)
 
 	//Register an entity and tell the library how to fetch and what to write to the client
 	es.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {

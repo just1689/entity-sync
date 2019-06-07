@@ -1,6 +1,6 @@
 package esbridge
 
-import "github.com/just1689/entity-sync/entitysync/shared"
+import "github.com/just1689/entity-sync/es/shared"
 
 type client struct {
 	Subscriptions map[string]shared.EntityKey

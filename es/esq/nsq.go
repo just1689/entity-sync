@@ -2,7 +2,7 @@ package esq
 
 import (
 	"fmt"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 	"github.com/nsqio/go-nsq"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"

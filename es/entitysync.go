@@ -1,12 +1,12 @@
-package entitysync
+package es
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/just1689/entity-sync/entitysync/esbridge"
-	"github.com/just1689/entity-sync/entitysync/esdb"
-	"github.com/just1689/entity-sync/entitysync/esq"
-	"github.com/just1689/entity-sync/entitysync/esweb"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/esbridge"
+	"github.com/just1689/entity-sync/es/esdb"
+	"github.com/just1689/entity-sync/es/esq"
+	"github.com/just1689/entity-sync/es/esweb"
+	"github.com/just1689/entity-sync/es/shared"
 )
 
 type Config struct {

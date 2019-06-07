@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/gorilla/websocket"
-	"github.com/just1689/entity-sync/entitysync/shared"
+	"github.com/just1689/entity-sync/es/shared"
 	"github.com/sirupsen/logrus"
 	"log"
 	"net/url"
