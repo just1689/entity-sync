@@ -33,10 +33,10 @@ config := es.Config{
     NSQAddr: *nsqAddr,
 }
 //Setup entitySync with that configuration
-es := es.Setup(config)
+entitySync := es.Setup(config)
 
 //Register an entity and tell the library how to fetch and what to write to the client
-es.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+entitySync.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
     item := fetch(entityKey)
     b, _ := json.Marshal(item)
     handler(b)
@@ -78,13 +78,11 @@ All connected clients over websockets will receive messages for the EntityKey/s 
 ```
 
 
-
-
 ## Other examples
 
 ### Sending multiple rows to the client
 ```go
-es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+entitySync.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
     item := controller.GetReportByID(entityKey.ID)
     b, _ := json.Marshal(item)
     handler(b)
@@ -102,7 +100,7 @@ es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret 
 
 ### Checking if a user is allowed to receive the push notification
 ```go
-es.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+entitySync.RegisterEntityAndDBHandler("report", func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
     session, err := contoller.GetSessionBySecret(secret)
     if err != nil {
         logrus.Errorln(err)
