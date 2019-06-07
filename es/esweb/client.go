@@ -62,8 +62,7 @@ func (c *client) handleReadMsg(message []byte) {
 
 	if m.Action == shared.ActionSecret {
 		secret := ""
-		err := json.Unmarshal(m.Body, &secret)
-		if err != nil {
+		if err := json.Unmarshal(m.Body, &secret); err != nil {
 			logrus.Errorln(err)
 			return
 		}
@@ -73,8 +72,7 @@ func (c *client) handleReadMsg(message []byte) {
 
 	if f, found := c.bridgeProxy.entityKeyHandlers[m.Action]; found {
 		entityKey := shared.EntityKey{}
-		err := json.Unmarshal(m.Body, &entityKey)
-		if err != nil {
+		if err := json.Unmarshal(m.Body, &entityKey); err != nil {
 			logrus.Errorln(err)
 			return
 		}
