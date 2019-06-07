@@ -1,17 +1,17 @@
 package entitysync
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/just1689/entity-sync/entitysync/esbridge"
 	"github.com/just1689/entity-sync/entitysync/esdb"
 	"github.com/just1689/entity-sync/entitysync/esq"
 	"github.com/just1689/entity-sync/entitysync/esweb"
 	"github.com/just1689/entity-sync/entitysync/shared"
-	"net/http"
 )
 
 type Config struct {
 	NSQAddr string
-	Mux     *http.ServeMux
+	Mux     *mux.Router
 }
 
 type EntitySync struct {

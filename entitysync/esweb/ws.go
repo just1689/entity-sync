@@ -1,6 +1,7 @@
 package esweb
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/just1689/entity-sync/entitysync/shared"
 	"log"
@@ -24,10 +25,11 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetupMuxBridge(mux *http.ServeMux, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+func SetupMuxBridge(m *mux.Router, bridgeClientBuilder shared.ByteHandlingRemoteProxy) {
+
 	itemHub := newHub(bridgeClientBuilder)
 	go itemHub.run()
-	mux.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
+	m.HandleFunc("/ws/entity-sync/", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(itemHub, w, r)
 	})
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"github.com/gorilla/mux"
 	"github.com/just1689/entity-sync/entitysync"
 	"github.com/just1689/entity-sync/entitysync/esbridge"
 	"github.com/just1689/entity-sync/entitysync/shared"
@@ -28,17 +29,17 @@ func main() {
 
 	// Provide a configuration
 	config := entitysync.Config{
-		Mux:     http.NewServeMux(),
+		Mux:     mux.NewRouter(),
 		NSQAddr: *nsqAddr,
 	}
 	//Setup entitySync with that configuration
 	es := entitysync.Setup(config)
 
 	//Register an entity and tell the library how to fetch and what to write to the client
-	es.RegisterEntityAndDBHandler(entityType, func(rowKey shared.EntityKey, pusher shared.ByteHandler) {
-		item := fetch(rowKey)
+	es.RegisterEntityAndDBHandler(entityType, func(entityKey shared.EntityKey, secret string, handler shared.ByteHandler) {
+		item := fetch(entityKey)
 		b, _ := json.Marshal(item)
-		pusher(b)
+		handler(b)
 	})
 
 	//Simulate data changes
