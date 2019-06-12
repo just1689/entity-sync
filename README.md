@@ -21,7 +21,7 @@ Want to push entities on change to websocket clients while scaling horizontally?
 - Enable custom websocket listen path.
 - Consider improving the security model.
 - Consider a different fetch model (fetch per user vs fetch per server).
-
+- Queue prefix - provide a prepend string to ensure es topics are kept apart from others.
 
 ## Example
 
