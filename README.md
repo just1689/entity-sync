@@ -12,15 +12,15 @@ Want to push entities on change to websocket clients while scaling horizontally?
 - Multiple subscriptions. Each client can subscribe to multiple entities and multiples keys in each entity. 
 - Multiple responses. You can send back several rows. This is great if updating the client means sending them rows from tables in foreign keys etc.
 - Database / repository agnostic. This library can take a function that you implement to use whichever database, driver, client or interface you choose to implement. 
-- A helper package for a simple one call setup (see entitysync/entitysync.go)
+- A helper package for a simple one call setup (see es/entitysync.go)
 - Queue agnostic. Comes with working NSQ integration but you can choose to provide anything you can wrap in `shared.EntityHandler` and `shared.EntityByteHandler`.
-- Add a secret to a client. Accept a secret from the ws and set in client state. Pass secret to the handler to ensure the user is permitted to request the KeyEntity or filter the results they ask for.
+- Client secrets. The client can send a secret and when processed you can choose to use the secret to determine identity and authorization for example.
 - Function for incoming websocket requests that don't match any concern for this library to pass through.
 
 ## Roadmap
-- Providing the websocket context.
-- Only one lookup per server on change.
+- Enable custom websocket listen path.
 - Consider improving the security model.
+- Consider a different fetch model (fetch per user vs fetch per server).
 
 
 ## Example
