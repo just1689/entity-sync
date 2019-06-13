@@ -55,7 +55,7 @@ func (c *client) handleReadMsg(message []byte) {
 		return
 	}
 
-	if m.Action == "" {
+	if m.Action == "" && c.MsgPassThrough != nil {
 		c.MsgPassThrough(c.secret, message)
 		return
 	}
